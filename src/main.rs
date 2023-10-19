@@ -1,6 +1,7 @@
 mod line_follower;
 mod robot;
 mod menu;
+#[cfg(feature = "menu")]
 mod lcd;
 
 use anyhow::{Context, Result};

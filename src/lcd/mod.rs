@@ -1,6 +1,6 @@
 use anyhow::{Context, Result};
-use ev3dev_lang_rust::Screen;
 use crate::lcd::font::Font;
+use ev3dev_lang_rust::Screen;
 use image::Rgb;
 
 pub mod font;
@@ -13,7 +13,7 @@ pub struct Lcd {
 impl Lcd {
 	pub fn new() -> Result<Lcd> {
 		Ok(Lcd {
-			screen: Screen::new().with_context(|| "Failed to get screen")?,
+			screen: Screen::new().context("Failed to get screen")?,
 			font: &Font::MEDIUM,
 		})
 	}
