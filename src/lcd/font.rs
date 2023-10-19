@@ -65,9 +65,7 @@ impl Font {
 		// the position in bits
 		let pos = y * self.count * self.width + ch_pos * self.width + x;
 
-		// the position to the byte and to the bit in that byte
 		let byte_pos = pos / 8;
-		let bit_pos = pos % 8;
 
 		let byte = self.glyphs.get(byte_pos)
 			.ok_or_else(|| anyhow!(
@@ -75,7 +73,7 @@ impl Font {
 				self.count, self.width, self.height))?
 			.clone();
 
-		let flag = 1 << bit_pos;
+		let flag = 1 << (pos % 8);
 
 		let is_set = byte & flag != 0;
 
