@@ -146,7 +146,7 @@ macro_rules! button_function {
 }
 
 impl Button {
-	fn await_press(buttons: &Buttons) -> Button {
+	pub fn await_press(buttons: &Buttons) -> Button {
 		loop {
 			buttons.process();
 
