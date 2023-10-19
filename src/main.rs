@@ -10,15 +10,20 @@ use crate::robot::Robot;
 
 
 fn main() -> Result<()> {
+    std::env::set_var("RUST_BACKTRACE", "full");
+    eprintln!("Started Program");
 
     let mut robot = Robot::new()
-        .with_context(|| "Failed to create robot")?;
+        .context("Failed to create robot")?;
+
+    //robot.test()?;
+    //return Ok(());
 
     let tick_time = Duration::from_millis(50);
     loop {
         let start = Instant::now();
 
-        if robot.tick().with_context(|| "Failed to tick robot")? {
+        if robot.tick().context("Failed to tick robot")? {
             break;
         }
 
