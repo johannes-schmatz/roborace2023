@@ -1,8 +1,12 @@
 mod line_follower;
+mod gradient_follower;
+
 mod robot;
 mod menu;
 #[cfg(feature = "menu")]
 mod lcd;
+mod pid;
+mod motor;
 
 use anyhow::{Context, Result};
 use std::time::{Duration, Instant};
