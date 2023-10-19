@@ -1,3 +1,4 @@
+use std::time::Duration;
 use anyhow::{Context, Result};
 use ev3dev_lang_rust::Button as Buttons;
 use ev3dev_lang_rust::motors::{LargeMotor, MotorPort};
