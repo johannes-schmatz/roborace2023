@@ -1,6 +1,7 @@
 use std::time::Duration;
 use anyhow::{anyhow, Context, Result};
 use ev3dev_lang_rust::{Button as Buttons};
+#[cfg(feature = "menu")]
 use crate::lcd::Lcd;
 use crate::robot::RobotState;
 
@@ -16,10 +17,40 @@ impl Menu {
 		Menu { buttons, items }
 	}
 
+	#[cfg(not(feature = "menu"))]
+	pub fn select(&self) -> Result<Option<RobotState>> {
+		let mut cursor = 0;
+
+		loop {
+			std::process::Command::new("clear").status()
+				.context("Failed to clear screen")?;
+			for item in &self.items {
+				println!("- {}", item.name);
+			}
+
+			println!("selected: {:?}", self.items.get(cursor));
+
+			cursor = match Button::await_press(&self.buttons) {
+				Button::Enter => {
+					return Ok(Some(self.items[cursor].new_state.clone()));
+				},
+				Button::Left => {
+					return Ok(Some(RobotState::Exit));
+				},
+				Button::Down if cursor + 1 >= self.items.len() => 0,
+				Button::Down => cursor + 1,
+				Button::Up if cursor == 0 => self.items.len() - 1,
+				Button::Up => cursor - 1,
+				_ => cursor,
+			};
+		}
+	}
+
+	#[cfg(feature = "menu")]
 	/// Return `Ok(Some(new_state))` to set a new robot state, `Ok(None)` to not change it.
 	pub fn select(&self) -> Result<Option<RobotState>> {
 		let mut lcd = Lcd::new()
-			.with_context(|| "Failed to create lcd")?;
+			.context("Failed to create lcd")?;
 
 		let mut cursor = 0;
 		let mut top_item = 0;
