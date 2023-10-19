@@ -54,7 +54,7 @@ impl Menu {
 						.new_state.clone();
 					return Ok(Some(new_state));
 				},
-				Button::Backspace => {
+				Button::Left => {
 					// Backspace exits the robot program
 					return Ok(Some(RobotState::Exit));
 				},
@@ -98,8 +98,8 @@ impl MenuItem {
 }
 
 #[derive(Debug)]
-enum Button {
-	Up, Down, Left, Right, Enter, Backspace
+pub enum Button { // TODO: move to own mod
+	Up, Down, Left, Right, Enter
 }
 
 macro_rules! button_function {
@@ -124,7 +124,6 @@ impl Button {
 			button_function!(buttons, is_left,      Button::Left     );
 			button_function!(buttons, is_right,     Button::Right    );
 			button_function!(buttons, is_enter,     Button::Enter    );
-			button_function!(buttons, is_backspace, Button::Backspace);
 
 			std::thread::sleep(Duration::from_millis(10));
 		}
