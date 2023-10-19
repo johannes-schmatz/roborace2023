@@ -5,7 +5,19 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[profile.release]
+opt-level = "z"
+lto = true
+#strip = "debuginfo"
+
+[features]
+#default = ["menu"]
+default = []
+menu = ["dep:image", "ev3dev-lang-rust/screen"]
+
 [dependencies]
-ev3dev-lang-rust = { version = "0.13.0", features = ["ev3", "screen"] }
+ev3dev-lang-rust = { version = "0.13.0", features = ["ev3"] }
+image = { version = "0.24.6", optional = true }
+
+# always
 anyhow = "1.0.75"
-image = "0.24.6"
