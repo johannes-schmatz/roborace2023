@@ -64,6 +64,37 @@ impl Robot {
 		})
 	}
 
+	pub fn test(&mut self) -> Result<()> {
+		self.left.inner.set_stop_action(LargeMotor::STOP_ACTION_BRAKE).context("hold")?;
+		self.right.inner.set_stop_action(LargeMotor::STOP_ACTION_BRAKE).context("hold")?;
+
+		self.left.inner.set_speed_sp(1000).context("speed sp")?;
+		self.right.inner.set_speed_sp(1000).context("speed sp")?;
+
+		self.left.set_speed(100)?;
+		self.right.set_speed(100)?;
+
+		self.left.start()?;
+		self.right.start()?;
+
+		std::thread::sleep(Duration::from_secs(3));
+
+		self.left.set_speed(-100)?;
+		self.right.set_speed(-100)?;
+
+		std::thread::sleep(Duration::from_secs(4));
+
+		self.left.set_speed(100)?;
+		self.right.set_speed(100)?;
+
+		std::thread::sleep(Duration::from_secs(1));
+
+		self.left.stop()?;
+		self.right.stop()?;
+
+		Ok(())
+	}
+
 	/// Return `Ok(true)` to end the program, `Ok(false)` otherwise.
 	pub fn tick(&mut self) -> Result<bool> {
 		self.buttons.process();
