@@ -3,6 +3,7 @@ use ev3dev_lang_rust::sensors::{ColorSensor, GyroSensor};
 use crate::menu::Button;
 use crate::motor::Motor;
 use crate::pid::Pid;
+use crate::settings::Settings;
 
 #[derive(Debug)]
 pub struct GradientFollower {
