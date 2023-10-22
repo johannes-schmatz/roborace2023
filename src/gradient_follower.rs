@@ -59,8 +59,8 @@ impl GradientFollower {
 		self.left.start()?;
 		self.right.start()?;
 
-		self.left.set_speed(self.speed as i32).context("Failed to set duty cycle left")?;
-		self.right.set_speed(self.speed as i32).context("Failed to set duty cycle right")?;
+		self.left.set_speed(self.speed).context("Failed to set duty cycle left")?;
+		self.right.set_speed(self.speed).context("Failed to set duty cycle right")?;
 
 		Ok(())
 	}
@@ -80,8 +80,8 @@ impl GradientFollower {
 		// u(t)
 		let correction = self.pid.update(error);
 
-		self.left.set_speed(self.speed as i32 + correction as i32)?;
-		self.right.set_speed(self.speed as i32 - correction as i32)?;
+		self.left.set_speed(self.speed + correction)?;
+		self.right.set_speed(self.speed - correction)?;
 
 		Ok(())
 	}

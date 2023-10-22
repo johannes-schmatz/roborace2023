@@ -55,7 +55,7 @@ impl Motor {
 		self.inner.run_direct().with_context(|| anyhow!("Failed to run motor {}", self.desc))
 	}
 
-	pub fn set_speed(&self, speed: f6) -> Result<()> {
+	pub fn set_speed(&self, speed: f64) -> Result<()> {
 		let mut speed = speed as i32;
 		if speed > 100 {
 			speed = 100;

@@ -59,8 +59,8 @@ impl Robot {
 				MenuItem::new("Gradient Start", RobotState::GradientDrive),
 			]),
 
-			line_follower: LineFollower::new(color.clone(), left.clone(), right.clone()),
-			gradient_follower: GradientFollower::new(color.clone(), /*gyro.clone(), */left.clone(), right.clone()),
+			line_follower: LineFollower::new(settings, color.clone(), left.clone(), right.clone()),
+			gradient_follower: GradientFollower::new(settings, color.clone(), /*gyro.clone(), */left.clone(), right.clone()),
 
 			color, /*gyro, */left, right,
 		})
@@ -73,21 +73,21 @@ impl Robot {
 		self.left.inner.set_speed_sp(1000).context("speed sp")?;
 		self.right.inner.set_speed_sp(1000).context("speed sp")?;
 
-		self.left.set_speed(100)?;
-		self.right.set_speed(100)?;
+		self.left.set_speed(100f64)?;
+		self.right.set_speed(100f64)?;
 
 		self.left.start()?;
 		self.right.start()?;
 
 		std::thread::sleep(Duration::from_secs(3));
 
-		self.left.set_speed(-100)?;
-		self.right.set_speed(-100)?;
+		self.left.set_speed(-100f64)?;
+		self.right.set_speed(-100f64)?;
 
 		std::thread::sleep(Duration::from_secs(4));
 
-		self.left.set_speed(100)?;
-		self.right.set_speed(100)?;
+		self.left.set_speed(100f64)?;
+		self.right.set_speed(100f64)?;
 
 		std::thread::sleep(Duration::from_secs(1));
 

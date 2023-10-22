@@ -1,6 +1,7 @@
 use anyhow::Result;
 use ev3dev_lang_rust::sensors::ColorSensor;
 use crate::motor::Motor;
+use crate::settings::Settings;
 
 #[derive(Debug)]
 pub struct LineFollower {
