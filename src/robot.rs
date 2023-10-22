@@ -7,6 +7,7 @@ use crate::gradient_follower::GradientFollower;
 use crate::line_follower::LineFollower;
 use crate::menu::{Menu, MenuItem};
 use crate::motor::Motor;
+use crate::settings::Settings;
 
 #[derive(Debug)]
 pub struct Robot {
@@ -26,7 +27,7 @@ pub struct Robot {
 }
 
 impl Robot {
-	pub fn new() -> Result<Robot> {
+	pub fn new(settings: &Settings) -> Result<Robot> {
 		let buttons = Buttons::new()
 			.context("Failed to get the robot buttons")?;
 

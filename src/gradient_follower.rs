@@ -20,13 +20,13 @@ pub struct GradientFollower {
 }
 
 impl GradientFollower {
-	pub fn new(color: ColorSensor,/* gyro: GyroSensor,*/ left: Motor, right: Motor) -> GradientFollower {
+	pub fn new(settings: &Settings, color: ColorSensor,/* gyro: GyroSensor,*/ left: Motor, right: Motor) -> GradientFollower {
 		GradientFollower {
 			color,/* gyro,*/ left, right,
 
 			center: 0.0,
 
-			pid: Pid::new(0.1, 0.0, 0.1),
+			pid: settings.gradient_pid.clone(),
 
 			speed: 50.0,
 		}

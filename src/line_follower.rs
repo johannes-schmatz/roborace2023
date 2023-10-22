@@ -10,7 +10,7 @@ pub struct LineFollower {
 }
 
 impl LineFollower {
-	pub fn new(color: ColorSensor, left: Motor, right: Motor) -> LineFollower {
+	pub fn new(settings: &Settings, color: ColorSensor, left: Motor, right: Motor) -> LineFollower {
 		LineFollower { color, left, right }
 	}
 

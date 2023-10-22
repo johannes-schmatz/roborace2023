@@ -1,11 +1,14 @@
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Pid {
 	k_p: f64,
 	k_i: f64,
 	k_d: f64,
 
+	#[serde(skip)]
 	last: f64,
+	#[serde(skip)]
 	integral: f64,
 }
 

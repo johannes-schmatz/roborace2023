@@ -1,0 +1,4 @@
+[gradient_pid]
+k_p = 0.1
+k_i = 0.0
+k_d = 0.1

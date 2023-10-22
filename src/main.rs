@@ -7,17 +7,19 @@ mod menu;
 mod lcd;
 mod pid;
 mod motor;
+mod settings;
 
 use anyhow::{Context, Result};
 use std::time::{Duration, Instant};
 use crate::robot::Robot;
-
+use crate::settings::Settings;
 
 fn main() -> Result<()> {
     std::env::set_var("RUST_BACKTRACE", "full");
-    eprintln!("Started Program");
 
-    let mut robot = Robot::new()
+    let mut settings = Settings::get()?;
+
+    let mut robot = Robot::new(&settings)
         .context("Failed to create robot")?;
 
     //robot.test()?;
@@ -37,6 +39,8 @@ fn main() -> Result<()> {
             std::thread::sleep(dur)
         }
     }
+
+    settings.write()?;
 
     Ok(())
 }
