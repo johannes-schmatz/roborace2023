@@ -1,11 +1,10 @@
 use std::time::Duration;
-use anyhow::{Context, Result};
+use anyhow::{bail, Context, Result};
 use ev3dev_lang_rust::Button as Buttons;
 use ev3dev_lang_rust::motors::{LargeMotor, MotorPort};
 use ev3dev_lang_rust::sensors::{ColorSensor, SensorPort};
 use crate::menu::{Menu, MenuItem};
 use crate::motor::Motor;
-use crate::settings::Settings;
 
 #[derive(Debug)]
 pub(crate) struct Robot {
@@ -100,4 +99,60 @@ pub(crate) enum RobotState {
 
 	GradientMeasure,
 	GradientDrive,
+}
+
+impl RobotState {
+	/// `Ok(None)` indicates to terminate the program
+	pub(crate) fn get_initial() -> Result<RobotState> {
+		fn help_text() {
+			eprintln!(r#"
+Usage:
+	roborace2023 [<subcommand>]
+
+Help subcommands:
+	help		Print out this help text and exit.
+	exit|stop	"Exit" the robot program. This turns off all running motors.
+
+Generic subcommands:
+	menu		Open the menu for selecting any robot state.
+	test		Run the quick and dirty test method.
+
+Driving subcommands:
+	grad		Start the gradient driving.
+	line		Start the line driving.
+
+Measure subcommands:
+	gradm		Measure the gradient. For this, position the robot in a right
+				angle to the drive lane.
+	linem		Measure the line. This has no implementation yet and will panic.
+
+If no subcommand is given, the robot will go into menu mode."#);
+		}
+
+		if let Some(arg) = std::env::args().skip(1).next() {
+			match arg.as_str() {
+				"help" => {
+					help_text();
+					std::process::exit(0)
+				},
+				"exit" | "stop" => Ok(RobotState::Exit),
+
+				"menu" => Ok(RobotState::InMenu),
+				"test" => Ok(RobotState::Test),
+
+				"grad" => Ok(RobotState::GradientDrive),
+				"line" => Ok(RobotState::LineDrive),
+
+				"gradm" => Ok(RobotState::GradientMeasure),
+				"linem" => Ok(RobotState::LineMeasure),
+
+				x => {
+					help_text();
+					bail!("No sub-command {x:?} known")
+				},
+			}
+		} else {
+			Ok(RobotState::InMenu)
+		}
+	}
 }

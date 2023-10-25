@@ -14,33 +14,13 @@ use std::time::{Duration, Instant};
 use crate::robot::{Robot, RobotState};
 use crate::settings::Settings;
 
-fn get_initial_robot_state() -> Result<Option<RobotState>> {
-    let string = std::env::args()
-        .skip(1)
-        .next()
-        .unwrap_or(String::from("menu"));
-    match string.as_str() {
-        "menu" => Ok(Some(RobotState::InMenu)),
-        "test" => Ok(Some(RobotState::Test)),
-        x => {
-            let vec = [
-                "menu",
-                "test",
-            ];
-            bail!("Cannot parse argument {x:?}, we only know the following: {vec:?}")
-        },
-    }
-}
 
 fn main() -> Result<()> {
     std::env::set_var("RUST_BACKTRACE", "full");
 
-    let initial_state = get_initial_robot_state()
-        .context("Failed to parse arguments")?
-        .unwrap_or(RobotState::InMenu);
-
     let mut settings = Settings::get()?;
-    settings.state = initial_state;
+    settings.state = RobotState::get_initial()
+        .context("Failed to parse command line arguments")?;
 
     let robot = Robot::new()
         .context("Failed to create robot")?;
