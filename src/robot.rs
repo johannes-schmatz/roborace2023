@@ -2,54 +2,29 @@ use std::time::Duration;
 use anyhow::{Context, Result};
 use ev3dev_lang_rust::Button as Buttons;
 use ev3dev_lang_rust::motors::{LargeMotor, MotorPort};
-use ev3dev_lang_rust::sensors::{ColorSensor, GyroSensor, SensorPort};
-use crate::gradient_follower::GradientFollower;
-use crate::line_follower::LineFollower;
+use ev3dev_lang_rust::sensors::{ColorSensor, SensorPort};
 use crate::menu::{Menu, MenuItem};
 use crate::motor::Motor;
 use crate::settings::Settings;
 
 #[derive(Debug)]
 pub struct Robot {
-	state: RobotState,
+	pub(crate) buttons: Buttons,
 
-	buttons: Buttons,
+	pub(crate) menu: Menu,
 
-	menu: Menu,
-
-	line_follower: LineFollower,
-	gradient_follower: GradientFollower,
-
-	color: ColorSensor,
-	//gyro: GyroSensor,
-	left: Motor,
-	right: Motor,
+	pub color: ColorSensor,
+	//pub gyro: GyroSensor,
+	pub left: Motor,
+	pub right: Motor,
 }
 
 impl Robot {
-	pub fn new(state: RobotState, settings: &Settings) -> Result<Robot> {
+	pub fn new() -> Result<Robot> {
 		let buttons = Buttons::new()
 			.context("Failed to get the robot buttons")?;
 
-		let left = LargeMotor::get(MotorPort::OutA)
-			.context("Failed to get the left motor")?;
-		left.set_polarity(LargeMotor::POLARITY_INVERSED)?;
-		let left = Motor::new(left, "left");
-
-		let right = LargeMotor::get(MotorPort::OutB)
-			.context("Failed to get the right motor")?;
-		right.set_polarity(LargeMotor::POLARITY_INVERSED)?;
-		let right = Motor::new(right, "right");
-
-		let color = ColorSensor::get(SensorPort::In1)
-			.context("Failed to get the color sensor")?;
-
-		//let gyro = GyroSensor::get(SensorPort::In2)
-		//	.context("Failed to get the gyro sensor")?;
-
 		Ok(Robot {
-			state,
-
 			buttons: buttons.clone(),
 
 			menu: Menu::new(buttons, vec![
@@ -59,14 +34,27 @@ impl Robot {
 				MenuItem::new("Gradient Start", RobotState::GradientDrive),
 			]),
 
-			line_follower: LineFollower::new(settings, color.clone(), left.clone(), right.clone()),
-			gradient_follower: GradientFollower::new(settings, color.clone(), /*gyro.clone(), */left.clone(), right.clone()),
+			color: ColorSensor::get(SensorPort::In1)
+				.context("Failed to get the color sensor")?,
+			//gyro: GyroSensor::get(SensorPort::In2)
+			//	.context("Failed to get the gyro sensor")?,
 
-			color, /*gyro, */left, right,
+			left: {
+				let left = LargeMotor::get(MotorPort::OutA)
+					.context("Failed to get the left motor")?;
+				left.set_polarity(LargeMotor::POLARITY_INVERSED)?;
+				Motor::new(left, "left")
+			},
+			right: {
+				let right = LargeMotor::get(MotorPort::OutB)
+					.context("Failed to get the right motor")?;
+				right.set_polarity(LargeMotor::POLARITY_INVERSED)?;
+				Motor::new(right, "right")
+			},
 		})
 	}
 
-	pub fn test(&mut self) -> Result<()> {
+	pub fn test(&self) -> Result<()> {
 		self.left.inner.set_stop_action(LargeMotor::STOP_ACTION_BRAKE).context("hold")?;
 		self.right.inner.set_stop_action(LargeMotor::STOP_ACTION_BRAKE).context("hold")?;
 
@@ -96,76 +84,13 @@ impl Robot {
 
 		Ok(())
 	}
-
-	/// Return `Ok(true)` to end the program, `Ok(false)` otherwise.
-	pub fn tick(&mut self) -> Result<bool> {
-		self.buttons.process();
-		if self.buttons.is_left() {
-			std::thread::sleep(Duration::from_millis(400));
-			self.next_state(RobotState::InMenu)?;
-		}
-
-		match self.state {
-			RobotState::Exit => {
-				// try to stop the motors
-				let _ = self.left.stop();
-				let _ = self.right.stop();
-
-				return Ok(true)
-			},
-			RobotState::InMenu => {
-				if let Some(new_state) = self.menu.select()? {
-					self.next_state(new_state)?;
-				}
-			},
-			RobotState::Test => {
-				self.test()?;
-				self.next_state(RobotState::Exit)?;
-			},
-
-			RobotState::LineMeasure => {
-				todo!();
-				self.next_state(RobotState::InMenu)?;
-			},
-			RobotState::LineDrive => todo!(),
-
-			RobotState::GradientMeasure => {
-				self.gradient_follower.measure()?;
-				self.next_state(RobotState::InMenu)?;
-			},
-			RobotState::GradientDrive => {
-				self.gradient_follower.drive()?;
-			},
-		}
-
-		Ok(false)
-	}
-
-	fn next_state(&mut self, new_state: RobotState) -> Result<()> {
-		match (&self.state, &new_state) {
-			(_, RobotState::LineMeasure) | (_, RobotState::LineDrive) => {
-				todo!()
-			},
-			(_, RobotState::GradientMeasure) => {},
-			(_, RobotState::GradientDrive) => {
-				self.gradient_follower.prepare_drive()
-					.context("Failed to prepare for gradient drive")?
-			},
-			(RobotState::LineDrive, _) | (RobotState::GradientDrive, _) => {
-				self.left.stop()?;
-				self.right.stop()?;
-			}
-			(_, _) => {},
-		}
-		self.state = new_state;
-		Ok(())
-	}
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Default, PartialEq)]
 pub enum RobotState {
 	Exit,
 
+	#[default]
 	InMenu,
 	Test,
 

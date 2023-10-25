@@ -1,21 +1,34 @@
 use anyhow::Result;
-use ev3dev_lang_rust::sensors::ColorSensor;
-use crate::motor::Motor;
-use crate::settings::Settings;
+use serde::{Deserialize, Serialize};
+use crate::pid::Pid;
+use crate::robot::Robot;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct LineFollower {
-	color: ColorSensor,
-	left: Motor,
-	right: Motor,
+	pub pid: Pid,
+}
+
+impl Default for LineFollower {
+	fn default() -> Self {
+		LineFollower {
+			pid: Pid::new(0.1, 0.0, 0.1),
+		}
+	}
 }
 
 impl LineFollower {
-	pub fn new(settings: &Settings, color: ColorSensor, left: Motor, right: Motor) -> LineFollower {
-		LineFollower { color, left, right }
+	#[allow(unused_variables)]
+	pub fn measure(&self, bot: &Robot) -> Result<()> {
+		todo!()
 	}
 
-	pub fn tick(&mut self) -> Result<()> {
-		Ok(())
+	#[allow(unused_variables)]
+	pub fn prepare_drive(&mut self, bot: &Robot) -> Result<()> {
+		todo!()
+	}
+
+	#[allow(unused_variables)]
+	pub fn drive(&mut self, bot: &Robot) -> Result<()> {
+		todo!()
 	}
 }

@@ -40,8 +40,9 @@ fn main() -> Result<()> {
         .unwrap_or(RobotState::InMenu);
 
     let mut settings = Settings::get()?;
+    settings.state = initial_state;
 
-    let mut robot = Robot::new(initial_state, &settings)
+    let robot = Robot::new()
         .context("Failed to create robot")?;
 
     //robot.test()?;
@@ -51,7 +52,7 @@ fn main() -> Result<()> {
     loop {
         let start = Instant::now();
 
-        if robot.tick().context("Failed to tick robot")? {
+        if settings.tick(&robot).context("Failed to tick robot")? {
             break;
         }
 

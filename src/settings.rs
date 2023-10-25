@@ -1,19 +1,19 @@
 use anyhow::{Context, Result};
 use std::path::Path;
+use std::time::Duration;
 use serde::{Deserialize, Serialize};
-use crate::pid::Pid;
+use crate::gradient_follower::GradientFollower;
+use crate::line_follower::LineFollower;
+use crate::robot::{Robot, RobotState};
 
-#[derive(Deserialize, Serialize)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
 pub struct Settings {
-	pub gradient_pid: Pid,
-}
+	pub gradient: GradientFollower,
+	pub line: LineFollower,
 
-impl Default for Settings {
-	fn default() -> Self {
-		Settings {
-			gradient_pid: Pid::new(0f64, 0f64, 0f64),
-		}
-	}
+	#[serde(skip)]
+	pub(crate) state: RobotState,
+
 }
 
 impl Settings {
@@ -56,6 +56,76 @@ impl Settings {
 				.context("Failed to write settings file")?;
 		}
 
+		Ok(())
+	}
+
+
+
+	/// Return `Ok(true)` to end the program, `Ok(false)` otherwise.
+	pub fn tick(&mut self, bot: &Robot) -> Result<bool> {
+		bot.buttons.process();
+		if bot.buttons.is_left() {
+			std::thread::sleep(Duration::from_millis(400));
+			self.next_state(bot, RobotState::InMenu)?;
+		}
+
+		match self.state {
+			RobotState::Exit => {
+				// try to stop the motors
+				let _ = bot.left.stop();
+				let _ = bot.right.stop();
+
+				return Ok(true)
+			},
+			RobotState::InMenu => {
+				if let Some(new_state) = bot.menu.select()? {
+					self.next_state(bot, new_state)?;
+				}
+			},
+			RobotState::Test => {
+				bot.test()?;
+				self.next_state(bot, RobotState::Exit)?;
+			},
+
+			RobotState::LineMeasure => {
+				self.line.measure(bot)?;
+				self.next_state(bot, RobotState::InMenu)?;
+			},
+			RobotState::LineDrive => {
+				self.line.drive(bot)?;
+			},
+
+			RobotState::GradientMeasure => {
+				self.gradient.measure(bot)?;
+				self.next_state(bot, RobotState::InMenu)?;
+			},
+			RobotState::GradientDrive => {
+				self.gradient.drive(bot)?;
+			},
+		}
+
+		Ok(false)
+	}
+
+	pub fn next_state(&mut self, bot: &Robot, new_state: RobotState) -> Result<()> {
+		match (&self.state, &new_state) {
+			(_, RobotState::LineMeasure) => {},
+			(_, RobotState::LineDrive) => {
+				self.line.prepare_drive(bot)
+					.context("Failed to prepare for line drive")?;
+			},
+			(_, RobotState::GradientMeasure) => {},
+			(_, RobotState::GradientDrive) => {
+				self.gradient.prepare_drive(bot)
+					.context("Failed to prepare for gradient drive")?;
+			},
+			(RobotState::LineDrive, _) | (RobotState::GradientDrive, _) => {
+				bot.left.stop()?;
+				bot.right.stop()?;
+			}
+			(_, _) => {},
+		}
+		self.state = new_state;
 		Ok(())
 	}
 }

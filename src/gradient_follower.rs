@@ -1,48 +1,37 @@
 use anyhow::{Context, Result};
-use ev3dev_lang_rust::sensors::{ColorSensor, GyroSensor};
+use serde::{Deserialize, Serialize};
 use crate::menu::Button;
-use crate::motor::Motor;
 use crate::pid::Pid;
-use crate::settings::Settings;
+use crate::robot::Robot;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct GradientFollower {
-	color: ColorSensor,
-//	gyro: GyroSensor,
-
-	left: Motor,
-	right: Motor,
-
-	center: f64,
-
-	pid: Pid,
-
-	speed: f64,
+	pub pid: Pid,
+	pub center: f64,
+	pub speed: f64,
 }
 
-impl GradientFollower {
-	pub fn new(settings: &Settings, color: ColorSensor,/* gyro: GyroSensor,*/ left: Motor, right: Motor) -> GradientFollower {
+impl Default for GradientFollower {
+	fn default() -> Self {
 		GradientFollower {
-			color,/* gyro,*/ left, right,
-
+			pid: Pid::new(0.1, 0.0, 0.1),
 			center: 0.0,
-
-			pid: settings.gradient_pid.clone(),
-
 			speed: 50.0,
 		}
 	}
+}
 
-	pub fn measure(&mut self) -> Result<()> {
-		let line_width = 37.5;
+impl GradientFollower {
+	pub fn measure(&self, bot: &Robot) -> Result<()> {
+		let line_width = 37.5; // cm
 
-		let btns = ev3dev_lang_rust::Button::new()?;
+		let buttons = ev3dev_lang_rust::Button::new()?;
 		loop {
-			let value = self.color.get_color().context("while reading color")?;
+			let value = bot.color.get_color().context("while reading color")?;
 			println!("println test");
 			eprintln!("{value}");
 
-			if let Button::Left = Button::await_press(&btns) {
+			if let Button::Left = Button::await_press(&buttons) {
 				println!("break!!!");
 				break;
 			}
@@ -51,17 +40,17 @@ impl GradientFollower {
 		Ok(())
 	}
 
-	pub fn prepare_drive(&mut self) -> Result<()> {
-		//self.gyro.set_mode_gyro_ang().context("Failed to set gyro mode")?;
-		self.color.set_mode_col_reflect().context("Failed to set color mode")?;
+	pub fn prepare_drive(&mut self, bot: &Robot) -> Result<()> {
+		//bot.gyro.set_mode_gyro_ang().context("Failed to set gyro mode")?;
+		bot.color.set_mode_col_reflect().context("Failed to set color mode")?;
 
 		self.pid.set_last(0.0); // TODO: measure this??
 
-		self.left.start()?;
-		self.right.start()?;
+		bot.left.start()?;
+		bot.right.start()?;
 
-		self.left.set_speed(self.speed).context("Failed to set duty cycle left")?;
-		self.right.set_speed(self.speed).context("Failed to set duty cycle right")?;
+		bot.left.set_speed(self.speed).context("Failed to set duty cycle left")?;
+		bot.right.set_speed(self.speed).context("Failed to set duty cycle right")?;
 
 		Ok(())
 	}
@@ -71,9 +60,9 @@ impl GradientFollower {
 	/// Führungsgröße: Die Grauheit in der Mitte: w(t), konstant -> Sollwert
 	/// Eingangssignal e(t) = w(t) - y(t)
 	/// Ausgangssignal u(t)
-	pub fn drive(&mut self) -> Result<()> {
+	pub fn drive(&mut self, bot: &Robot) -> Result<()> {
 		// w(t)
-		let reflection = self.color.get_color()? as f64;
+		let reflection = bot.color.get_color()? as f64;
 
 		// e(t) = w(t) - y(t)
 		let error = self.center - reflection;
@@ -81,8 +70,8 @@ impl GradientFollower {
 		// u(t)
 		let correction = self.pid.update(error);
 
-		self.left.set_speed(self.speed + correction)?;
-		self.right.set_speed(self.speed - correction)?;
+		bot.left.set_speed(self.speed + correction)?;
+		bot.right.set_speed(self.speed - correction)?;
 
 		Ok(())
 	}
