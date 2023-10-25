@@ -27,7 +27,7 @@ pub struct Robot {
 }
 
 impl Robot {
-	pub fn new(settings: &Settings) -> Result<Robot> {
+	pub fn new(state: RobotState, settings: &Settings) -> Result<Robot> {
 		let buttons = Buttons::new()
 			.context("Failed to get the robot buttons")?;
 
@@ -48,7 +48,7 @@ impl Robot {
 		//	.context("Failed to get the gyro sensor")?;
 
 		Ok(Robot {
-			state: RobotState::InMenu,
+			state,
 
 			buttons: buttons.clone(),
 
@@ -106,17 +106,29 @@ impl Robot {
 		}
 
 		match self.state {
-			RobotState::Exit => return Ok(true),
+			RobotState::Exit => {
+				// try to stop the motors
+				let _ = self.left.stop();
+				let _ = self.right.stop();
+
+				return Ok(true)
+			},
 			RobotState::InMenu => {
 				if let Some(new_state) = self.menu.select()? {
 					self.next_state(new_state)?;
 				}
 			},
+			RobotState::Test => {
+				self.test()?;
+				self.next_state(RobotState::Exit)?;
+			},
+
 			RobotState::LineMeasure => {
 				todo!();
 				self.next_state(RobotState::InMenu)?;
 			},
 			RobotState::LineDrive => todo!(),
+
 			RobotState::GradientMeasure => {
 				self.gradient_follower.measure()?;
 				self.next_state(RobotState::InMenu)?;
@@ -153,9 +165,13 @@ impl Robot {
 #[derive(Debug, Clone, PartialEq)]
 pub enum RobotState {
 	Exit,
+
 	InMenu,
+	Test,
+
 	LineMeasure,
 	LineDrive,
+
 	GradientMeasure,
 	GradientDrive,
 }
