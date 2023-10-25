@@ -1,4 +1,13 @@
-[gradient_pid]
+[gradient]
+center = 0.0
+speed = 50.0
+
+[gradient.pid]
+k_p = 0.1
+k_i = 0.0
+k_d = 0.1
+
+[line.pid]
 k_p = 0.1
 k_i = 0.0
 k_d = 0.1

@@ -1,8 +1,10 @@
 use std::time::Duration;
-use anyhow::{anyhow, Context, Result};
+use anyhow::{Context, Result};
 use ev3dev_lang_rust::{Button as Buttons};
 #[cfg(feature = "menu")]
 use crate::lcd::Lcd;
+#[cfg(feature = "menu")]
+use anyhow::anyhow;
 use crate::robot::RobotState;
 
 #[derive(Debug)]
