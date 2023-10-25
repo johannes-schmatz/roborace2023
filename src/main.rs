@@ -9,7 +9,7 @@ mod pid;
 mod motor;
 mod settings;
 
-use anyhow::{bail, Context, Result};
+use anyhow::{Context, Result};
 use std::time::{Duration, Instant};
 use crate::robot::{Robot, RobotState};
 use crate::settings::Settings;

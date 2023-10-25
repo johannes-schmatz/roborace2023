@@ -5,10 +5,10 @@ use crate::pid::Pid;
 use crate::robot::Robot;
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct GradientFollower {
-	pub pid: Pid,
-	pub center: f64,
-	pub speed: f64,
+pub(crate) struct GradientFollower {
+	pid: Pid,
+	center: f64,
+	speed: f64,
 }
 
 impl Default for GradientFollower {
@@ -22,7 +22,7 @@ impl Default for GradientFollower {
 }
 
 impl GradientFollower {
-	pub fn measure(&self, bot: &Robot) -> Result<()> {
+	pub(crate) fn measure(&self, bot: &Robot) -> Result<()> {
 		let line_width = 37.5; // cm
 
 		let buttons = ev3dev_lang_rust::Button::new()?;
@@ -40,7 +40,7 @@ impl GradientFollower {
 		Ok(())
 	}
 
-	pub fn prepare_drive(&mut self, bot: &Robot) -> Result<()> {
+	pub(crate) fn prepare_drive(&mut self, bot: &Robot) -> Result<()> {
 		//bot.gyro.set_mode_gyro_ang().context("Failed to set gyro mode")?;
 		bot.color.set_mode_col_reflect().context("Failed to set color mode")?;
 
@@ -60,7 +60,7 @@ impl GradientFollower {
 	/// Führungsgröße: Die Grauheit in der Mitte: w(t), konstant -> Sollwert
 	/// Eingangssignal e(t) = w(t) - y(t)
 	/// Ausgangssignal u(t)
-	pub fn drive(&mut self, bot: &Robot) -> Result<()> {
+	pub(crate) fn drive(&mut self, bot: &Robot) -> Result<()> {
 		// w(t)
 		let reflection = bot.color.get_color()? as f64;
 
