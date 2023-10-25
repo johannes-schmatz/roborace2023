@@ -1,23 +1,23 @@
 use anyhow::{anyhow, bail, Result};
 
-pub struct Font {
+pub(crate) struct Font {
 	/// The char corresponding to the first glyph of the font.
 	first: char,
 	/// How many glyphs the font stores.
 	count: usize,
 	/// The height of a glyph.
-	pub width: usize,
+	pub(crate) width: usize,
 	/// The width of a glyph.
-	pub height: usize,
+	pub(crate) height: usize,
 	/// The glyphs making up the font.
 	glyphs: &'static [u8],
 }
 
 impl Font {
-	pub const TINY: Font = Self::new(include_bytes!("tiny.raw"), 4, 6, 5, 4, 96, ' ');
-	pub const SMALL: Font = Self::new(include_bytes!("small.raw"), 6, 8, 7, 6, 96, ' ');
-	pub const MEDIUM: Font = Self::new(include_bytes!("medium.raw"), 10, 16, 14, 10, 96, ' ');
-	pub const LARGE: Font = Self::new(include_bytes!("large.raw"), 20, 32, 28, 20, 96, ' ');
+	pub(crate) const TINY: Font = Self::new(include_bytes!("tiny.raw"), 4, 6, 5, 4, 96, ' ');
+	pub(crate) const SMALL: Font = Self::new(include_bytes!("small.raw"), 6, 8, 7, 6, 96, ' ');
+	pub(crate) const MEDIUM: Font = Self::new(include_bytes!("medium.raw"), 10, 16, 14, 10, 96, ' ');
+	pub(crate) const LARGE: Font = Self::new(include_bytes!("large.raw"), 20, 32, 28, 20, 96, ' ');
 
 	/// Creates a new font. Use the following command to view the font files in your terminal:
 	/// ```sh
@@ -36,7 +36,7 @@ impl Font {
 	/// Prints the given input to stdout using the font, representing pixels that are turned on with `#`.
 	/// Note that this panics in case of error, so this should not be used for production.
 	#[cfg(test)]
-	pub fn print_text(&self, value: &str) {
+	pub(crate) fn print_text(&self, value: &str) {
 		for y in 0..self.height {
 			for ch in value.chars() {
 				for x in 0..self.width {
@@ -51,7 +51,7 @@ impl Font {
 		}
 	}
 
-	pub fn get_pixel(&self, ch: char, x: usize, y: usize) -> Result<bool> {
+	pub(crate) fn get_pixel(&self, ch: char, x: usize, y: usize) -> Result<bool> {
 		if x >= self.width {
 			bail!("x = {x} is out of bounds for {}", self.width);
 		}

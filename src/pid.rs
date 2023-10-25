@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct Pid {
+pub(crate) struct Pid {
 	k_p: f64,
 	k_i: f64,
 	k_d: f64,
@@ -13,7 +13,7 @@ pub struct Pid {
 }
 
 impl Pid {
-	pub fn new(k_p: f64, k_i: f64, k_d: f64) -> Pid {
+	pub(crate) fn new(k_p: f64, k_i: f64, k_d: f64) -> Pid {
 		Pid {
 			k_p, k_i, k_d,
 			last: 0f64,
@@ -21,11 +21,11 @@ impl Pid {
 		}
 	}
 
-	pub fn set_last(&mut self, last: f64) {
+	pub(crate) fn set_last(&mut self, last: f64) {
 		self.last = last;
 	}
 
-	pub fn update(&mut self, input: f64) -> f64 {
+	pub(crate) fn update(&mut self, input: f64) -> f64 {
 		let last = std::mem::replace(&mut self.last, input);
 		self.integral += input;
 

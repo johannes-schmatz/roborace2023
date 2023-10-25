@@ -8,19 +8,19 @@ use anyhow::anyhow;
 use crate::robot::RobotState;
 
 #[derive(Debug)]
-pub struct Menu {
+pub(crate) struct Menu {
 	buttons: Buttons,
 	items: Vec<MenuItem>,
 }
 
 impl Menu {
-	pub fn new(buttons: Buttons, items: Vec<MenuItem>) -> Menu {
+	pub(crate) fn new(buttons: Buttons, items: Vec<MenuItem>) -> Menu {
 		assert!(!items.is_empty());
 		Menu { buttons, items }
 	}
 
 	#[cfg(not(feature = "menu"))]
-	pub fn select(&self) -> Result<Option<RobotState>> {
+	pub(crate) fn select(&self) -> Result<Option<RobotState>> {
 		let mut cursor = 0;
 
 		loop {
@@ -50,7 +50,7 @@ impl Menu {
 
 	#[cfg(feature = "menu")]
 	/// Return `Ok(Some(new_state))` to set a new robot state, `Ok(None)` to not change it.
-	pub fn select(&self) -> Result<Option<RobotState>> {
+	pub(crate) fn select(&self) -> Result<Option<RobotState>> {
 		let mut lcd = Lcd::new()
 			.context("Failed to create lcd")?;
 
@@ -118,20 +118,20 @@ impl Menu {
 }
 
 #[derive(Debug)]
-pub struct MenuItem {
+pub(crate) struct MenuItem {
 	name: &'static str,
 	/// The new robot state to set when this item is selected.
 	new_state: RobotState,
 }
 
 impl MenuItem {
-	pub fn new(name: &'static str, new_state: RobotState) -> MenuItem {
+	pub(crate) fn new(name: &'static str, new_state: RobotState) -> MenuItem {
 		MenuItem { name, new_state }
 	}
 }
 
 #[derive(Debug)]
-pub enum Button { // TODO: move to own mod
+pub(crate) enum Button { // TODO: move to own mod
 	Up, Down, Left, Right, Enter
 }
 
@@ -148,7 +148,7 @@ macro_rules! button_function {
 }
 
 impl Button {
-	pub fn await_press(buttons: &Buttons) -> Button {
+	pub(crate) fn await_press(buttons: &Buttons) -> Button {
 		loop {
 			buttons.process();
 

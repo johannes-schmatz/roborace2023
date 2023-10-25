@@ -4,8 +4,8 @@ use ev3dev_lang_rust::Ev3Result;
 use ev3dev_lang_rust::motors::LargeMotor;
 
 #[derive(Clone)]
-pub struct Motor {
-	pub inner: LargeMotor,
+pub(crate) struct Motor {
+	inner: LargeMotor,
 	desc: &'static str,
 }
 
@@ -42,20 +42,15 @@ impl Debug for Motor {
 }
 
 impl Motor {
-	pub fn new(inner: LargeMotor, desc: &'static str) -> Motor {
+	pub(crate) fn new(inner: LargeMotor, desc: &'static str) -> Motor {
 		Motor { inner, desc }
 	}
 
-	pub fn test(&self) -> Result<()> {
-		Ok(())
-	}
-
-
-	pub fn start(&self) -> Result<()> {
+	pub(crate) fn start(&self) -> Result<()> {
 		self.inner.run_direct().with_context(|| anyhow!("Failed to run motor {}", self.desc))
 	}
 
-	pub fn set_speed(&self, speed: f64) -> Result<()> {
+	pub(crate) fn set_speed(&self, speed: f64) -> Result<()> {
 		let mut speed = speed as i32;
 		if speed > 100 {
 			speed = 100;
@@ -66,7 +61,7 @@ impl Motor {
 		self.inner.set_duty_cycle_sp(speed).with_context(|| anyhow!("Failed to set speed {speed}"))
 	}
 
-	pub fn stop(&self) -> Result<()> {
+	pub(crate) fn stop(&self) -> Result<()> {
 		self.inner.stop().with_context(|| anyhow!("Failed to stop motor {}", self.desc))
 	}
 }

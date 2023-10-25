@@ -4,8 +4,8 @@ use crate::pid::Pid;
 use crate::robot::Robot;
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct LineFollower {
-	pub pid: Pid,
+pub(crate) struct LineFollower {
+	pid: Pid,
 }
 
 impl Default for LineFollower {
@@ -18,17 +18,17 @@ impl Default for LineFollower {
 
 impl LineFollower {
 	#[allow(unused_variables)]
-	pub fn measure(&self, bot: &Robot) -> Result<()> {
+	pub(crate) fn measure(&self, bot: &Robot) -> Result<()> {
 		todo!()
 	}
 
 	#[allow(unused_variables)]
-	pub fn prepare_drive(&mut self, bot: &Robot) -> Result<()> {
+	pub(crate) fn prepare_drive(&mut self, bot: &Robot) -> Result<()> {
 		todo!()
 	}
 
 	#[allow(unused_variables)]
-	pub fn drive(&mut self, bot: &Robot) -> Result<()> {
+	pub(crate) fn drive(&mut self, bot: &Robot) -> Result<()> {
 		todo!()
 	}
 }

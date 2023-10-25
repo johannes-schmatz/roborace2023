@@ -7,9 +7,9 @@ use crate::line_follower::LineFollower;
 use crate::robot::{Robot, RobotState};
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct Settings {
-	pub gradient: GradientFollower,
-	pub line: LineFollower,
+pub(crate) struct Settings {
+	gradient: GradientFollower,
+	line: LineFollower,
 
 	#[serde(skip)]
 	pub(crate) state: RobotState,
@@ -21,7 +21,7 @@ impl Settings {
 		Path::new("./robot_settings.toml")
 	}
 
-	pub fn get() -> Result<Settings> {
+	pub(crate) fn get() -> Result<Settings> {
 		let path = Self::path();
 
 		if path.exists() {
@@ -43,7 +43,7 @@ impl Settings {
 		}
 	}
 
-	pub fn write(self) -> Result<()> {
+	pub(crate) fn write(self) -> Result<()> {
 		let path = Self::path();
 
 		let out = toml::to_string_pretty(&self)
@@ -62,7 +62,7 @@ impl Settings {
 
 
 	/// Return `Ok(true)` to end the program, `Ok(false)` otherwise.
-	pub fn tick(&mut self, bot: &Robot) -> Result<bool> {
+	pub(crate) fn tick(&mut self, bot: &Robot) -> Result<bool> {
 		bot.buttons.process();
 		if bot.buttons.is_left() {
 			std::thread::sleep(Duration::from_millis(400));
@@ -107,7 +107,7 @@ impl Settings {
 		Ok(false)
 	}
 
-	pub fn next_state(&mut self, bot: &Robot, new_state: RobotState) -> Result<()> {
+	pub(crate) fn next_state(&mut self, bot: &Robot, new_state: RobotState) -> Result<()> {
 		match (&self.state, &new_state) {
 			(_, RobotState::LineMeasure) => {},
 			(_, RobotState::LineDrive) => {

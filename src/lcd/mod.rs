@@ -3,29 +3,29 @@ use crate::lcd::font::Font;
 use ev3dev_lang_rust::Screen;
 use image::Rgb;
 
-pub mod font;
+pub(crate) mod font;
 
-pub struct Lcd {
+pub(crate) struct Lcd {
 	screen: Screen,
 	font: &'static Font,
 }
 
 impl Lcd {
-	pub fn new() -> Result<Lcd> {
+	pub(crate) fn new() -> Result<Lcd> {
 		Ok(Lcd {
 			screen: Screen::new().context("Failed to get screen")?,
 			font: &Font::MEDIUM,
 		})
 	}
 
-	pub fn clear(&mut self) {
+	pub(crate) fn clear(&mut self) {
 		self.screen.clear();
 	}
-	pub fn update(&mut self) {
+	pub(crate) fn update(&mut self) {
 		self.screen.update();
 	}
 
-	pub fn draw_char(&mut self, ch: char, column: usize, line: usize) {
+	pub(crate) fn draw_char(&mut self, ch: char, column: usize, line: usize) {
 		for font_x in 0..self.font.width {
 			for font_y in 0..self.font.height {
 				let x = self.font.width * column + font_x;
@@ -43,7 +43,7 @@ impl Lcd {
 			}
 		}
 	}
-	pub fn draw_str(&mut self, string: &str, column: usize, line: usize) {
+	pub(crate) fn draw_str(&mut self, string: &str, column: usize, line: usize) {
 		for (i, ch) in string.chars().enumerate() {
 			self.draw_char(ch, column + i, line);
 		}

@@ -8,19 +8,19 @@ use crate::motor::Motor;
 use crate::settings::Settings;
 
 #[derive(Debug)]
-pub struct Robot {
+pub(crate) struct Robot {
 	pub(crate) buttons: Buttons,
 
 	pub(crate) menu: Menu,
 
-	pub color: ColorSensor,
+	pub(crate) color: ColorSensor,
 	//pub gyro: GyroSensor,
-	pub left: Motor,
-	pub right: Motor,
+	pub(crate) left: Motor,
+	pub(crate) right: Motor,
 }
 
 impl Robot {
-	pub fn new() -> Result<Robot> {
+	pub(crate) fn new() -> Result<Robot> {
 		let buttons = Buttons::new()
 			.context("Failed to get the robot buttons")?;
 
@@ -43,23 +43,24 @@ impl Robot {
 				let left = LargeMotor::get(MotorPort::OutA)
 					.context("Failed to get the left motor")?;
 				left.set_polarity(LargeMotor::POLARITY_INVERSED)?;
+				left.set_stop_action(LargeMotor::STOP_ACTION_BRAKE)?;
+				left.set_speed_sp(left.get_max_speed()?)?;
 				Motor::new(left, "left")
 			},
 			right: {
 				let right = LargeMotor::get(MotorPort::OutB)
 					.context("Failed to get the right motor")?;
 				right.set_polarity(LargeMotor::POLARITY_INVERSED)?;
+				right.set_stop_action(LargeMotor::STOP_ACTION_BRAKE)?;
+				right.set_speed_sp(right.get_max_speed()?)?;
 				Motor::new(right, "right")
 			},
 		})
 	}
 
-	pub fn test(&self) -> Result<()> {
-		self.left.inner.set_stop_action(LargeMotor::STOP_ACTION_BRAKE).context("hold")?;
-		self.right.inner.set_stop_action(LargeMotor::STOP_ACTION_BRAKE).context("hold")?;
-
-		self.left.inner.set_speed_sp(1000).context("speed sp")?;
-		self.right.inner.set_speed_sp(1000).context("speed sp")?;
+	pub(crate) fn test(&self) -> Result<()> {
+		dbg!(&self.left);
+		dbg!(&self.right);
 
 		self.left.set_speed(100f64)?;
 		self.right.set_speed(100f64)?;
@@ -87,7 +88,7 @@ impl Robot {
 }
 
 #[derive(Debug, Clone, Default, PartialEq)]
-pub enum RobotState {
+pub(crate) enum RobotState {
 	Exit,
 
 	#[default]
