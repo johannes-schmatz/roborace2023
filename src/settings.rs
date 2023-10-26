@@ -59,8 +59,6 @@ impl Settings {
 		Ok(())
 	}
 
-
-
 	/// Return `Ok(true)` to end the program, `Ok(false)` otherwise.
 	pub(crate) fn tick(&mut self, bot: &Robot) -> Result<bool> {
 		bot.buttons.process();

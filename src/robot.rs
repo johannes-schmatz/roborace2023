@@ -122,6 +122,14 @@ macro_rules! create_robot_state {
 					"If no subcommand is given, the robot will go into menu mode."
 				)
 			}
+
+			pub(crate) fn get_menu_items() -> Vec<MenuItem> {
+				vec![
+					$(
+						MenuItem::new($variant_name, $name::$variant),
+					)*
+				]
+			}
 		}
 	}
 }
