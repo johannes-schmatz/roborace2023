@@ -25,11 +25,14 @@ fn main() -> Result<()> {
         .status()?;
 
     let mut settings = Settings::get()?;
-    settings.state = RobotState::get_initial()
+
+    let next_state = RobotState::get_initial()
         .context("Failed to parse command line arguments")?;
 
     let robot = Robot::new()
         .context("Failed to create robot")?;
+
+    settings.next_state(&robot, next_state)?;
 
     //robot.test()?;
     //return Ok(());

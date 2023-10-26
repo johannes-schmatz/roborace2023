@@ -1,5 +1,5 @@
 use std::time::Duration;
-use anyhow::{bail, Context, Result};
+use anyhow::{anyhow, Context, Result};
 use ev3dev_lang_rust::Button as Buttons;
 use ev3dev_lang_rust::motors::{LargeMotor, MotorPort};
 use ev3dev_lang_rust::sensors::{ColorSensor, SensorPort};
@@ -86,71 +86,93 @@ impl Robot {
 	}
 }
 
-#[derive(Debug, Clone, Default, PartialEq)]
-pub(crate) enum RobotState {
-	Exit,
+macro_rules! create_robot_state {
+	(
+		#[$attr:meta]
+		$vis:vis enum $name:ident {
+			$(
+				$(#[$variant_attr:meta])?
+				$variant:ident = $variant_name:literal: ($variant_padding:literal) $variant_desc:literal,
+			)*
+		}
+	) => {
+		#[$attr]
+		$vis enum $name {
+			$(
+				$(#[$variant_attr])?
+				$variant,
+			)*
+		}
 
-	#[default]
-	InMenu,
-	Test,
+		impl $name {
+			fn create(string: &str) -> Option<$name> {
+				match string {
+					$(
+						$variant_name => Some($name::$variant),
+					)*
+					_ => None,
+				}
+			}
 
-	LineMeasure,
-	LineDrive,
-
-	GradientMeasure,
-	GradientDrive,
+			fn help_text() -> &'static str {
+				concat!(
+					"Usage:", '\n',
+					'\t', "roborace2023 [<subcommand>]", '\n',
+					'\n',
+					"Where <subcommand> is one of:", '\n',
+					$(
+						'\t', $variant_name, $variant_padding, $variant_desc, '\n',
+					)*
+					'\n',
+					"If no subcommand is given, the robot will go into menu mode."
+				)
+			}
+		}
+	}
 }
+
+create_robot_state!(
+	#[derive(Debug, Clone, Default, PartialEq)]
+	pub(crate) enum RobotState {
+		Exit = "exit": ("\t\t")
+			"Print out this help text and exit.",
+
+		#[default]
+		InMenu = "menu": ("\t\t")
+			"Open the menu for selecting any robot state",
+		Test = "test": ("\t\t")
+			"Run the quick and dirty test method",
+
+		LineMeasure = "line-measure": ("\t")
+			"Measure the line. This has no implementation yet and will panic.",
+		LineDrive = "line": ("\t\t")
+			"Start the line driving.",
+
+		GradientMeasure = "grad-measure": ("\t")
+			"Measure the gradient. For this, position the robot in a right angle to the drive lane",
+		GradientDrive = "grad": ("\t\t")
+			"Start the gradient driving.",
+	}
+);
 
 impl RobotState {
 	/// `Ok(None)` indicates to terminate the program
 	pub(crate) fn get_initial() -> Result<RobotState> {
-		fn help_text() {
-			eprintln!(r#"
-Usage:
-	roborace2023 [<subcommand>]
-
-Help subcommands:
-	help		Print out this help text and exit.
-	exit|stop	"Exit" the robot program. This turns off all running motors.
-
-Generic subcommands:
-	menu		Open the menu for selecting any robot state.
-	test		Run the quick and dirty test method.
-
-Driving subcommands:
-	grad		Start the gradient driving.
-	line		Start the line driving.
-
-Measure subcommands:
-	gradm		Measure the gradient. For this, position the robot in a right
-				angle to the drive lane.
-	linem		Measure the line. This has no implementation yet and will panic.
-
-If no subcommand is given, the robot will go into menu mode."#);
-		}
-
 		if let Some(arg) = std::env::args().skip(1).next() {
-			match arg.as_str() {
-				"help" => {
-					help_text();
-					std::process::exit(0)
-				},
-				"exit" | "stop" => Ok(RobotState::Exit),
+			if arg == "help" {
+				let str = RobotState::help_text();
+				eprintln!("{}", str);
 
-				"menu" => Ok(RobotState::InMenu),
-				"test" => Ok(RobotState::Test),
-
-				"grad" => Ok(RobotState::GradientDrive),
-				"line" => Ok(RobotState::LineDrive),
-
-				"gradm" => Ok(RobotState::GradientMeasure),
-				"linem" => Ok(RobotState::LineMeasure),
-
-				x => {
-					help_text();
-					bail!("No sub-command {x:?} known")
-				},
+				std::process::exit(0)
 			}
+
+			Self::create(&arg)
+				.ok_or_else(|| {
+					let str = RobotState::help_text();
+					eprintln!("{}", str);
+
+					anyhow!("No sub-command {arg:?} known")
+				})
 		} else {
 			Ok(RobotState::InMenu)
 		}
