@@ -12,7 +12,7 @@ pub(crate) struct Settings {
 	line: LineFollower,
 
 	#[serde(skip)]
-	pub(crate) state: RobotState,
+	state: RobotState,
 
 }
 
@@ -65,7 +65,7 @@ impl Settings {
 	pub(crate) fn tick(&mut self, bot: &Robot) -> Result<bool> {
 		bot.buttons.process();
 		if bot.buttons.is_left() {
-			std::thread::sleep(Duration::from_millis(400));
+			std::thread::sleep(Duration::from_millis(300));
 			self.next_state(bot, RobotState::InMenu)?;
 		}
 
