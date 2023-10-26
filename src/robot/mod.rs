@@ -14,7 +14,7 @@ pub(crate) struct Robot {
 	pub(crate) buttons: Buttons,
 
 	pub(crate) color: ColorSensor,
-	//pub gyro: GyroSensor,
+	//pub(crate) gyro: GyroSensor,
 	pub(crate) left: Motor,
 	pub(crate) right: Motor,
 }
