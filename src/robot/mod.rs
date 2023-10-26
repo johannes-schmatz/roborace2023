@@ -2,10 +2,8 @@ use std::time::Duration;
 use anyhow::{Context, Result};
 use ev3dev_lang_rust::motors::{LargeMotor, MotorPort};
 use ev3dev_lang_rust::sensors::{ColorSensor, SensorPort};
-use crate::menu::Menu;
 use crate::robot::button::Buttons;
 use crate::robot::motor::Motor;
-use crate::robot::state::RobotState;
 
 pub(crate) mod state;
 pub(crate) mod motor;
@@ -14,8 +12,6 @@ pub(crate) mod button;
 #[derive(Debug)]
 pub(crate) struct Robot {
 	pub(crate) buttons: Buttons,
-
-	pub(crate) menu: Menu,
 
 	pub(crate) color: ColorSensor,
 	//pub gyro: GyroSensor,
@@ -28,8 +24,6 @@ impl Robot {
 		Ok(Robot {
 			buttons: Buttons::new()
 				.context("Failed to get the robot buttons")?,
-
-			menu: Menu::new(RobotState::get_menu_items()),
 
 			color: ColorSensor::get(SensorPort::In1)
 				.context("Failed to get the color sensor")?,

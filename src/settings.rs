@@ -4,6 +4,7 @@ use std::time::Duration;
 use serde::{Deserialize, Serialize};
 use crate::gradient_follower::GradientFollower;
 use crate::line_follower::LineFollower;
+use crate::menu::Menu;
 use crate::robot::Robot;
 use crate::robot::state::RobotState;
 
@@ -76,7 +77,7 @@ impl Settings {
 				return Ok(true)
 			},
 			RobotState::InMenu => {
-				let menu = bot.menu.clone();
+				let menu = Menu::new();
 				if let Some(new_state) = menu.select(bot)? {
 					self.next_state(bot, new_state)?;
 				}

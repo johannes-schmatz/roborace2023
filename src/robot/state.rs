@@ -1,5 +1,4 @@
 use anyhow::{anyhow, Result};
-use crate::menu::MenuItem;
 
 macro_rules! create_robot_state {
 	(
@@ -43,10 +42,10 @@ macro_rules! create_robot_state {
 				)
 			}
 
-			pub(crate) fn get_menu_items() -> Vec<MenuItem> {
+			pub(crate) fn get_menu_items() -> Vec<(&'static str, RobotState)> {
 				vec![
 					$(
-						MenuItem::new($variant_name, $name::$variant),
+						($variant_name, $name::$variant),
 					)*
 				]
 			}
