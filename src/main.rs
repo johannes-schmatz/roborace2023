@@ -18,6 +18,12 @@ use crate::settings::Settings;
 fn main() -> Result<()> {
     std::env::set_var("RUST_BACKTRACE", "full");
 
+    #[cfg(target_arch = "arm")]
+    // setup the fonts
+    std::process::Command::new("setfont")
+        .arg("/usr/share/consolefonts/Lat2-Terminus14.psf.gz")
+        .status()?;
+
     let mut settings = Settings::get()?;
     settings.state = RobotState::get_initial()
         .context("Failed to parse command line arguments")?;
