@@ -28,7 +28,7 @@ impl GradientFollower {
 		loop {
 			let value = bot.color.get_color().context("while reading color")?;
 			println!("println test");
-			eprintln!("{value}");
+			println!("{value}");
 
 			if let Button::Left = bot.buttons.await_press() {
 				println!("break!!!");
