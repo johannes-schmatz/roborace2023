@@ -108,6 +108,14 @@ impl Settings {
 	}
 
 	pub(crate) fn next_state(&mut self, bot: &Robot, new_state: RobotState) -> Result<()> {
+		match self.state {
+			RobotState::LineDrive | RobotState::GradientDrive => {
+				bot.left.stop()?;
+				bot.right.stop()?;
+			},
+			_ => {},
+		}
+
 		match (&self.state, &new_state) {
 			(_, RobotState::LineMeasure) => {},
 			(_, RobotState::LineDrive) => {
@@ -119,12 +127,9 @@ impl Settings {
 				self.gradient.prepare_drive(bot)
 					.context("Failed to prepare for gradient drive")?;
 			},
-			(RobotState::LineDrive, _) | (RobotState::GradientDrive, _) => {
-				bot.left.stop()?;
-				bot.right.stop()?;
-			}
 			(_, _) => {},
 		}
+
 		self.state = new_state;
 		Ok(())
 	}
