@@ -1,11 +1,11 @@
-use std::time::Duration;
 use anyhow::{Context, Result};
 use ev3dev_lang_rust::{Button as Buttons};
 #[cfg(feature = "menu")]
 use crate::lcd::Lcd;
 #[cfg(feature = "menu")]
 use anyhow::anyhow;
-use crate::robot::RobotState;
+use crate::robot::button::Button;
+use crate::robot::state::RobotState;
 
 #[derive(Debug)]
 pub(crate) struct Menu {
@@ -127,38 +127,5 @@ pub(crate) struct MenuItem {
 impl MenuItem {
 	pub(crate) fn new(name: &'static str, new_state: RobotState) -> MenuItem {
 		MenuItem { name, new_state }
-	}
-}
-
-#[derive(Debug)]
-pub(crate) enum Button { // TODO: move to own mod
-	Up, Down, Left, Right, Enter
-}
-
-macro_rules! button_function {
-	($buttons:ident, $name:ident, $ret:path) => {
-		if $buttons.$name() {
-			while $buttons.$name() {
-				std::thread::sleep(Duration::from_millis(10));
-				$buttons.process();
-			}
-			return $ret;
-		}
-	}
-}
-
-impl Button {
-	pub(crate) fn await_press(buttons: &Buttons) -> Button {
-		loop {
-			buttons.process();
-
-			button_function!(buttons, is_up,        Button::Up       );
-			button_function!(buttons, is_down,      Button::Down     );
-			button_function!(buttons, is_left,      Button::Left     );
-			button_function!(buttons, is_right,     Button::Right    );
-			button_function!(buttons, is_enter,     Button::Enter    );
-
-			std::thread::sleep(Duration::from_millis(10));
-		}
 	}
 }

@@ -1,6 +1,6 @@
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
-use crate::menu::Button;
+use crate::robot::button::Button;
 use crate::pid::Pid;
 use crate::robot::Robot;
 

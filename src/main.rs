@@ -6,13 +6,13 @@ mod menu;
 #[cfg(feature = "menu")]
 mod lcd;
 mod pid;
-mod motor;
 mod settings;
 
 use anyhow::{Context, Result};
 use std::time::{Duration, Instant};
-use crate::robot::{Robot, RobotState};
+use crate::robot::Robot;
 use crate::settings::Settings;
+use crate::robot::state::RobotState;
 
 
 fn main() -> Result<()> {

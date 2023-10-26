@@ -4,7 +4,8 @@ use std::time::Duration;
 use serde::{Deserialize, Serialize};
 use crate::gradient_follower::GradientFollower;
 use crate::line_follower::LineFollower;
-use crate::robot::{Robot, RobotState};
+use crate::robot::Robot;
+use crate::robot::state::RobotState;
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
 pub(crate) struct Settings {
@@ -13,7 +14,6 @@ pub(crate) struct Settings {
 
 	#[serde(skip)]
 	state: RobotState,
-
 }
 
 impl Settings {
