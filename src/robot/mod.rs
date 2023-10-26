@@ -1,9 +1,9 @@
 use std::time::Duration;
 use anyhow::{Context, Result};
-use ev3dev_lang_rust::Button as Buttons;
 use ev3dev_lang_rust::motors::{LargeMotor, MotorPort};
 use ev3dev_lang_rust::sensors::{ColorSensor, SensorPort};
 use crate::menu::Menu;
+use crate::robot::button::Buttons;
 use crate::robot::motor::Motor;
 use crate::robot::state::RobotState;
 
@@ -25,13 +25,11 @@ pub(crate) struct Robot {
 
 impl Robot {
 	pub(crate) fn new() -> Result<Robot> {
-		let buttons = Buttons::new()
-			.context("Failed to get the robot buttons")?;
-
 		Ok(Robot {
-			buttons: buttons.clone(),
+			buttons: Buttons::new()
+				.context("Failed to get the robot buttons")?,
 
-			menu: Menu::new(buttons, RobotState::get_menu_items()),
+			menu: Menu::new(RobotState::get_menu_items()),
 
 			color: ColorSensor::get(SensorPort::In1)
 				.context("Failed to get the color sensor")?,

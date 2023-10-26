@@ -1,26 +1,25 @@
 use anyhow::{Context, Result};
-use ev3dev_lang_rust::{Button as Buttons};
 #[cfg(feature = "menu")]
 use crate::lcd::Lcd;
 #[cfg(feature = "menu")]
 use anyhow::anyhow;
 use crate::robot::button::Button;
+use crate::robot::Robot;
 use crate::robot::state::RobotState;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub(crate) struct Menu {
-	buttons: Buttons,
 	items: Vec<MenuItem>,
 }
 
 impl Menu {
-	pub(crate) fn new(buttons: Buttons, items: Vec<MenuItem>) -> Menu {
+	pub(crate) fn new(items: Vec<MenuItem>) -> Menu {
 		assert!(!items.is_empty());
-		Menu { buttons, items }
+		Menu { items }
 	}
 
 	#[cfg(not(feature = "menu"))]
-	pub(crate) fn select(&self) -> Result<Option<RobotState>> {
+	pub(crate) fn select(&self, bot: &Robot) -> Result<Option<RobotState>> {
 		let mut cursor = 0;
 
 		loop {
@@ -32,7 +31,7 @@ impl Menu {
 
 			println!("selected: {:?}", self.items.get(cursor).map(|x| x.name));
 
-			cursor = match Button::await_press(&self.buttons) {
+			cursor = match bot.buttons.await_press() {
 				Button::Enter => {
 					return Ok(Some(self.items[cursor].new_state.clone()));
 				},
@@ -50,7 +49,7 @@ impl Menu {
 
 	#[cfg(feature = "menu")]
 	/// Return `Ok(Some(new_state))` to set a new robot state, `Ok(None)` to not change it.
-	pub(crate) fn select(&self) -> Result<Option<RobotState>> {
+	pub(crate) fn select(&self, bot: &Robot) -> Result<Option<RobotState>> {
 		let mut lcd = Lcd::new()
 			.context("Failed to create lcd")?;
 
@@ -80,7 +79,7 @@ impl Menu {
 			assert!(cursor < self.items.len());
 
 
-			(cursor, top_item) = match Button::await_press(&self.buttons) {
+			(cursor, top_item) = match bot.buttons.await_press() {
 				Button::Enter => {
 					let new_state = self.items.get(cursor)
 						.ok_or_else(|| anyhow!("Index out of bounds: cursor is {cursor}, but items length is {}", self.items.len()))?
@@ -117,7 +116,7 @@ impl Menu {
 	}
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub(crate) struct MenuItem {
 	name: &'static str,
 	/// The new robot state to set when this item is selected.

@@ -61,7 +61,7 @@ impl Settings {
 
 	/// Return `Ok(true)` to end the program, `Ok(false)` otherwise.
 	pub(crate) fn tick(&mut self, bot: &Robot) -> Result<bool> {
-		bot.buttons.process();
+		bot.buttons.update();
 		if bot.buttons.is_left() {
 			std::thread::sleep(Duration::from_millis(300));
 			self.next_state(bot, RobotState::InMenu)?;
@@ -76,7 +76,8 @@ impl Settings {
 				return Ok(true)
 			},
 			RobotState::InMenu => {
-				if let Some(new_state) = bot.menu.select()? {
+				let menu = bot.menu.clone();
+				if let Some(new_state) = menu.select(bot)? {
 					self.next_state(bot, new_state)?;
 				}
 			},

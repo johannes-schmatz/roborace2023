@@ -25,13 +25,12 @@ impl GradientFollower {
 	pub(crate) fn measure(&self, bot: &Robot) -> Result<()> {
 		let line_width = 37.5; // cm
 
-		let buttons = ev3dev_lang_rust::Button::new()?;
 		loop {
 			let value = bot.color.get_color().context("while reading color")?;
 			println!("println test");
 			eprintln!("{value}");
 
-			if let Button::Left = Button::await_press(&buttons) {
+			if let Button::Left = bot.buttons.await_press() {
 				println!("break!!!");
 				break;
 			}
