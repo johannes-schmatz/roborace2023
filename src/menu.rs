@@ -30,7 +30,7 @@ impl Menu {
 				println!("- {}", item.name);
 			}
 
-			println!("selected: {:?}", self.items.get(cursor));
+			println!("selected: {:?}", self.items.get(cursor).map(|x| x.name));
 
 			cursor = match Button::await_press(&self.buttons) {
 				Button::Enter => {

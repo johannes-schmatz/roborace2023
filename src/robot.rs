@@ -26,12 +26,7 @@ impl Robot {
 		Ok(Robot {
 			buttons: buttons.clone(),
 
-			menu: Menu::new(buttons, vec![
-				MenuItem::new("Line Measure", RobotState::LineMeasure),
-				MenuItem::new("Line Start", RobotState::LineDrive),
-				MenuItem::new("Gradient Measure", RobotState::GradientMeasure),
-				MenuItem::new("Gradient Start", RobotState::GradientDrive),
-			]),
+			menu: Menu::new(buttons, RobotState::get_menu_items()),
 
 			color: ColorSensor::get(SensorPort::In1)
 				.context("Failed to get the color sensor")?,
