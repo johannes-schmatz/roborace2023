@@ -28,27 +28,23 @@ macro_rules! create_robot_state {
 				}
 			}
 
-			fn help_text() -> &'static str {
-				concat!(
-					"Usage:", '\n',
-					'\t', "roborace2023 [<subcommand>]", '\n',
-					'\n',
-					"Where <subcommand> is one of:", '\n',
-					$(
-						'\t', $variant_name, $variant_padding, $variant_desc, '\n',
-					)*
-					'\n',
-					"If no subcommand is given, the robot will go into menu mode."
-				)
-			}
+			const HELP_TEXT: &str = concat!(
+				"Usage:", '\n',
+				'\t', "roborace2023 [<subcommand>]", '\n',
+				'\n',
+				"Where <subcommand> is one of:", '\n',
+				$(
+					'\t', $variant_name, $variant_padding, $variant_desc, '\n',
+				)*
+				'\n',
+				"If no subcommand is given, the robot will go into menu mode."
+			);
 
-			pub(crate) fn get_menu_items() -> Vec<(&'static str, RobotState)> {
-				vec![
-					$(
-						($variant_name, $name::$variant),
-					)*
-				]
-			}
+			pub(crate) const ALL: &[(&'static str, RobotState)] = &[
+				$(
+					($variant_name, $name::$variant),
+				)*
+			];
 		}
 	}
 }
@@ -82,16 +78,14 @@ impl RobotState {
 	pub(crate) fn get_initial() -> Result<RobotState> {
 		if let Some(arg) = std::env::args().skip(1).next() {
 			if arg == "help" {
-				let str = RobotState::help_text();
-				eprintln!("{}", str);
+				eprintln!("{}", RobotState::HELP_TEXT);
 
 				std::process::exit(0)
 			}
 
 			Self::create(&arg)
 				.ok_or_else(|| {
-					let str = RobotState::help_text();
-					eprintln!("{}", str);
+					eprintln!("{}", RobotState::HELP_TEXT);
 
 					anyhow!("No sub-command {arg:?} known")
 				})

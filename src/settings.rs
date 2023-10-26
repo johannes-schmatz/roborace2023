@@ -15,6 +15,8 @@ pub(crate) struct Settings {
 
 	#[serde(skip)]
 	state: RobotState,
+	#[serde(skip)]
+	menu: Menu,
 }
 
 impl Settings {
@@ -77,8 +79,7 @@ impl Settings {
 				return Ok(true)
 			},
 			RobotState::InMenu => {
-				let menu = Menu::new();
-				if let Some(new_state) = menu.select(bot)? {
+				if let Some(new_state) = self.menu.select(bot)? {
 					self.next_state(bot, new_state)?;
 				}
 			},
