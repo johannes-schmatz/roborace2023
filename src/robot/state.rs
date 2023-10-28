@@ -65,11 +65,6 @@ create_robot_state!(
 			"Measure the line. This has no implementation yet and will panic.",
 		LineDrive = "line": ("\t\t")
 			"Start the line driving.",
-
-		GradientMeasure = "grad-measure": ("\t")
-			"Measure the gradient. For this, position the robot in a right angle to the drive lane",
-		GradientDrive = "grad": ("\t\t")
-			"Start the gradient driving.",
 	}
 );
 

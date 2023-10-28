@@ -2,7 +2,6 @@ use anyhow::{Context, Result};
 use std::path::Path;
 use std::time::Duration;
 use serde::{Deserialize, Serialize};
-use crate::gradient_follower::GradientFollower;
 use crate::line_follower::LineFollower;
 use crate::menu;
 use crate::robot::Robot;
@@ -10,7 +9,6 @@ use crate::robot::state::RobotState;
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
 pub(crate) struct Settings {
-	gradient: GradientFollower,
 	line: LineFollower,
 
 	#[serde(skip)]
@@ -93,14 +91,6 @@ impl Settings {
 			RobotState::LineDrive => {
 				self.line.drive(bot)?;
 			},
-
-			RobotState::GradientMeasure => {
-				self.gradient.measure(bot)?;
-				self.next_state(bot, RobotState::InMenu)?;
-			},
-			RobotState::GradientDrive => {
-				self.gradient.drive(bot)?;
-			},
 		}
 
 		Ok(false)
@@ -108,7 +98,7 @@ impl Settings {
 
 	pub(crate) fn next_state(&mut self, bot: &Robot, new_state: RobotState) -> Result<()> {
 		match self.state {
-			RobotState::LineDrive | RobotState::GradientDrive => {
+			RobotState::LineDrive => {
 				bot.left.stop()?;
 				bot.right.stop()?;
 			},
@@ -120,11 +110,6 @@ impl Settings {
 			(_, RobotState::LineDrive) => {
 				self.line.prepare_drive(bot)
 					.context("Failed to prepare for line drive")?;
-			},
-			(_, RobotState::GradientMeasure) => {},
-			(_, RobotState::GradientDrive) => {
-				self.gradient.prepare_drive(bot)
-					.context("Failed to prepare for gradient drive")?;
 			},
 			(_, _) => {},
 		}
