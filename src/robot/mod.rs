@@ -1,7 +1,7 @@
 use std::time::Duration;
 use anyhow::{Context, Result};
-use ev3dev_lang_rust::motors::{LargeMotor, MotorPort};
-use ev3dev_lang_rust::sensors::{ColorSensor, SensorPort};
+use ev3dev_lang_rust::motors::{LargeMotor, MediumMotor, MotorPort};
+use ev3dev_lang_rust::sensors::{ColorSensor, GyroSensor, SensorPort, TouchSensor, UltrasonicSensor};
 use crate::robot::button::Buttons;
 use crate::robot::motor::Motor;
 
@@ -15,8 +15,13 @@ pub(crate) struct Robot {
 
 	pub(crate) color: ColorSensor,
 	//pub(crate) gyro: GyroSensor,
+	pub(crate) distance: UltrasonicSensor,
+	pub(crate) touch: TouchSensor,
+
 	pub(crate) left: Motor,
 	pub(crate) right: Motor,
+
+	pub(crate) top_arm: MediumMotor,
 }
 
 impl Robot {
@@ -27,24 +32,37 @@ impl Robot {
 
 			color: ColorSensor::get(SensorPort::In1)
 				.context("Failed to get the color sensor")?,
-			//gyro: GyroSensor::get(SensorPort::In2)
+			//gyro: GyroSensor::get(SensorPort::In4)
 			//	.context("Failed to get the gyro sensor")?,
+			distance: UltrasonicSensor::get(SensorPort::In3)
+				.context("Failed to get the ultrasonic sensor")?,
+			touch: TouchSensor::get(SensorPort::In2)
+				.context("Failed to get the touch sensor")?,
 
 			left: {
-				let left = LargeMotor::get(MotorPort::OutA)
+				let motor = LargeMotor::get(MotorPort::OutB)
 					.context("Failed to get the left motor")?;
-				left.set_polarity(LargeMotor::POLARITY_INVERSED)?;
-				left.set_stop_action(LargeMotor::STOP_ACTION_BRAKE)?;
-				left.set_speed_sp(left.get_max_speed()?)?;
-				Motor::new(left, "left")
+				//motor.set_polarity(LargeMotor::POLARITY_INVERSED)?;
+				motor.set_stop_action(LargeMotor::STOP_ACTION_BRAKE)?;
+				motor.set_speed_sp(motor.get_max_speed()?)?;
+				Motor::new(motor, "left")
 			},
 			right: {
-				let right = LargeMotor::get(MotorPort::OutB)
+				let motor = LargeMotor::get(MotorPort::OutA)
 					.context("Failed to get the right motor")?;
-				right.set_polarity(LargeMotor::POLARITY_INVERSED)?;
-				right.set_stop_action(LargeMotor::STOP_ACTION_BRAKE)?;
-				right.set_speed_sp(right.get_max_speed()?)?;
-				Motor::new(right, "right")
+				//motor.set_polarity(LargeMotor::POLARITY_INVERSED)?;
+				motor.set_stop_action(LargeMotor::STOP_ACTION_BRAKE)?;
+				motor.set_speed_sp(motor.get_max_speed()?)?;
+				Motor::new(motor, "right")
+			},
+
+			top_arm: {
+				let motor = MediumMotor::get(MotorPort::OutC)
+					.context("Failed to get the medium motor")?;
+				motor.set_polarity(MediumMotor::POLARITY_INVERSED)?;
+				motor.set_stop_action(MediumMotor::STOP_ACTION_COAST)?;
+				motor.set_speed_sp(motor.get_max_speed()? / 4)?;
+				motor
 			},
 		})
 	}
@@ -53,6 +71,7 @@ impl Robot {
 		dbg!(&self.left);
 		dbg!(&self.right);
 
+		/*
 		self.left.set_speed(100f64)?;
 		self.right.set_speed(100f64)?;
 
@@ -73,6 +92,16 @@ impl Robot {
 
 		self.left.stop()?;
 		self.right.stop()?;
+
+		std::thread::sleep(Duration::from_secs(3));
+
+		 */
+
+			self.top_arm.run_forever()?;
+
+			std::thread::sleep(Duration::from_secs(4));
+
+			self.top_arm.stop()?;
 
 		Ok(())
 	}
