@@ -2,8 +2,6 @@ mod line_follower;
 
 mod robot;
 mod menu;
-#[cfg(feature = "menu")]
-mod lcd;
 mod pid;
 mod settings;
 
