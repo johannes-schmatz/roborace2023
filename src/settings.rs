@@ -71,6 +71,7 @@ impl Settings {
 				// try to stop the motors
 				let _ = bot.left.stop();
 				let _ = bot.right.stop();
+				let _ = bot.top_arm.stop();
 
 				return Ok(true)
 			},
