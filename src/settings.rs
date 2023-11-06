@@ -99,8 +99,8 @@ impl Settings {
 	pub(crate) fn next_state(&mut self, bot: &Robot, new_state: RobotState) -> Result<()> {
 		match self.state {
 			RobotState::LineDrive => {
-				bot.left.stop()?;
-				bot.right.stop()?;
+				self.line.end_drive(bot)
+					.context("Failed to end line drive")?;
 			},
 			_ => {},
 		}
