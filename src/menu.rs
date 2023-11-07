@@ -8,13 +8,11 @@ pub(crate) fn select(bot: &Robot) -> Result<Option<RobotState>> {
 
 	let mut cursor = 0;
 
-	loop {
-		std::process::Command::new("clear").status()
-			.context("Failed to clear screen")?;
-		for (name, _) in items {
-			println!("- {}", name);
-		}
+	for (name, _) in items {
+		println!("- {}", name);
+	}
 
+	loop {
 		println!("selected: {:?}", items.get(cursor).map(|x| x.0));
 
 		cursor = match bot.buttons.await_press() {

@@ -20,7 +20,7 @@ fn test() {
 
     loop {
         b.process();
-        if b.is_left() {
+        if b.is_right() {
             break;
         }
 
