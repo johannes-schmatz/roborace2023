@@ -1,5 +1,3 @@
-mod line_follower;
-
 mod robot;
 mod menu;
 mod pid;
