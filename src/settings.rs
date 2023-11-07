@@ -90,7 +90,9 @@ impl Settings {
 				self.next_state(bot, RobotState::InMenu)?;
 			},
 			RobotState::LineDrive => {
-				self.line.drive(bot)?;
+				if self.line.drive(bot)? {
+					self.next_state(bot, RobotState::Exit)?;
+				}
 			},
 		}
 

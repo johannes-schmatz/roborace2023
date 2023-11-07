@@ -28,9 +28,14 @@ impl Default for LineFollower {
 }
 
 impl LineFollower {
-	#[allow(unused_variables)]
 	pub(crate) fn measure(&self, bot: &Robot) -> Result<()> {
-		todo!()
+		// TODO: measure
+		// We want to drive over the line to figure out if min/max value are actually fine
+		// and not only print them (all of the values), but also use them to find the perfect middle
+		// to "ride" on. We should need to actively accept the values, so they don't end up in the
+		// config file by accident.
+
+		Ok(())
 	}
 
 	pub(crate) fn prepare_drive(&mut self, bot: &Robot) -> Result<()> {
@@ -55,7 +60,8 @@ impl LineFollower {
 		Ok(())
 	}
 
-	pub(crate) fn drive(&mut self, bot: &Robot) -> Result<()> {
+	/// Return `Ok(true)` to stop the robot
+	pub(crate) fn drive(&mut self, bot: &Robot) -> Result<bool> {
 		let distance = bot.distance.get_distance_centimeters()?;
 		let distance = if distance == 255.0 { None } else { Some(distance as f64) };
 
@@ -64,12 +70,15 @@ impl LineFollower {
 			if false && distance < 25.0 { // TODO: disabled for now
 				bot.left.stop()?;
 				bot.right.stop()?;
+
+				return Ok(true);
 			}
 
-			if distance < 8.0 { // TODO: remove, this is for testing
+			if false && distance < 8.0 { // TODO: remove, this is for testing
 				bot.left.stop()?;
 				bot.right.stop()?;
-				panic!();
+
+				return Ok(true);
 			}
 		}
 
@@ -103,7 +112,7 @@ impl LineFollower {
 		bot.left .set_speed(self.speed + delta_speed_both + delta_speed)?;
 		bot.right.set_speed(self.speed + delta_speed_both - delta_speed)?;
 
-		Ok(())
+		Ok(false)
 	}
 
 	pub(crate) fn end_drive(&self, bot: &Robot) -> Result<()> {
