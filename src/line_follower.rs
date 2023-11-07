@@ -5,20 +5,23 @@ use crate::robot::Robot;
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub(crate) struct LineFollower {
-	pid: Pid,
-	center: f64,
+	line_pid: Pid,
+	line_center: f64,
 
-	speed_pid: Pid,
+	distance_pid: Pid,
+	distance_center: f64,
 	speed: f64,
 }
 
 impl Default for LineFollower {
 	fn default() -> Self {
 		LineFollower {
-			pid: Pid::new(-1.0, 0.0, 0.0),
-			center: 50.0,
+			line_pid: Pid::new(-0.4, 0.0, 0.5),
+			line_center: 50.0,
 
-			speed_pid: Pid::new(1.0, 0.0, 0.0),
+			distance_pid: Pid::new(1.0, 0.0, 0.0),
+			distance_center: 20.0,
+
 			speed: 50.0,
 		}
 	}
@@ -35,11 +38,11 @@ impl LineFollower {
 		//bot.gyro.set_mode_gyro_ang().context("Failed to set gyro mode")?;
 		bot.color.set_mode_col_reflect().context("Failed to set color mode")?;
 
-		let last = bot.color.get_color()? as f64 - self.center;
-		self.pid.set_last(last);
+		let last = bot.color.get_color()? as f64 - self.line_center;
+		self.line_pid.set_last(last);
 		println!("set last to {last:?}");
 
-		self.speed_pid.set_last(0.0); // TODO: is this good?
+		self.distance_pid.set_last(0.0); // TODO: is this good?
 
 		bot.left.start()?;
 		bot.right.start()?;
@@ -68,22 +71,37 @@ impl LineFollower {
 				bot.right.stop()?;
 				panic!();
 			}
-
-			let distance = self.speed_pid.update(distance);
-
-			// TODO: impl speed distance keeping
-
-			print!("{distance:?}\t\t\t");
 		}
+
+		// delta for both
+		let delta_speed_both = if let Some(distance) = distance {
+			let delta_speed = self.distance_pid.update(distance - self.distance_center);
+
+			print!("{distance:>5.1} => {delta_speed:>5.1} -- ");
+
+			delta_speed
+		} else {
+			print!("      =>       -- ");
+
+			0.0
+		};
+
+		let delta_speed_both = 0.0;
 
 		let reflection = bot.color.get_color()? as f64;
 
-		let delta_speed = self.pid.update(reflection - self.center);
+		// 2 * this = delta between left and right
+		let delta_speed = self.line_pid.update(reflection - self.line_center);
 
-		println!("{reflection:?} -> {:?} {:?}", self.speed + delta_speed, self.speed - delta_speed);
+		if false {
+			println!("{reflection:>5.1} -> l: {:>5.1} r: {:>5.1}", self.speed + delta_speed, self.speed - delta_speed);
+		}
 
-		bot.left.set_speed(self.speed + delta_speed)?;
-		bot.right.set_speed(self.speed - delta_speed)?;
+		let delta_speed = 0.0;
+		println!();
+
+		bot.left .set_speed(self.speed + delta_speed_both + delta_speed)?;
+		bot.right.set_speed(self.speed + delta_speed_both - delta_speed)?;
 
 		Ok(())
 	}
