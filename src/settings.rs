@@ -39,7 +39,7 @@ impl Default for Settings {
 impl Settings {
 
 
-	pub(crate) fn measure(&self, bot: &Robot) -> Result<()> {
+	fn measure(&self, bot: &Robot) -> Result<()> {
 		// TODO: measure
 		// We want to drive over the line to figure out if min/max value are actually fine
 		// and not only print them (all of the values), but also use them to find the perfect middle
@@ -49,7 +49,7 @@ impl Settings {
 		Ok(())
 	}
 
-	pub(crate) fn prepare_drive(&mut self, bot: &Robot) -> Result<()> {
+	fn prepare_drive(&mut self, bot: &Robot) -> Result<()> {
 		bot.distance.set_mode_us_dist_cm().context("Failed to set distance mode")?;
 		//bot.gyro.set_mode_gyro_ang().context("Failed to set gyro mode")?;
 		bot.color.set_mode_col_reflect().context("Failed to set color mode")?;
@@ -71,8 +71,7 @@ impl Settings {
 		Ok(())
 	}
 
-	/// Return `Ok(true)` to stop the robot
-	pub(crate) fn drive(&mut self, bot: &Robot) -> Result<bool> {
+	fn drive(&mut self, bot: &Robot) -> Result<()> {
 		let distance = bot.distance.get_distance_centimeters()?;
 		let distance = if distance == 255.0 { None } else { Some(distance as f64) };
 
@@ -82,14 +81,14 @@ impl Settings {
 				bot.left.stop()?;
 				bot.right.stop()?;
 
-				return Ok(true);
+				return self.next_state(bot, RobotState::Exit);
 			}
 
 			if false && distance < 8.0 { // TODO: remove, this is for testing
 				bot.left.stop()?;
 				bot.right.stop()?;
 
-				return Ok(true);
+				return self.next_state(bot, RobotState::Exit);
 			}
 		}
 
@@ -123,10 +122,10 @@ impl Settings {
 		bot.left .set_speed(self.speed + delta_speed_both + delta_speed)?;
 		bot.right.set_speed(self.speed + delta_speed_both - delta_speed)?;
 
-		Ok(false)
+		Ok(())
 	}
 
-	pub(crate) fn end_drive(&self, bot: &Robot) -> Result<()> {
+	fn end_drive(&self, bot: &Robot) -> Result<()> {
 		bot.left.stop()?;
 		bot.right.stop()?;
 
@@ -211,9 +210,7 @@ impl Settings {
 				self.next_state(bot, RobotState::InMenu)?;
 			},
 			RobotState::LineDrive => {
-				if self.drive(bot)? {
-					self.next_state(bot, RobotState::Exit)?;
-				}
+				self.drive(bot)?;
 			},
 		}
 
@@ -229,13 +226,12 @@ impl Settings {
 			_ => {},
 		}
 
-		match (&self.state, &new_state) {
-			(_, RobotState::LineMeasure) => {},
-			(_, RobotState::LineDrive) => {
+		match &new_state {
+			RobotState::LineDrive => {
 				self.prepare_drive(bot)
 					.context("Failed to prepare for line drive")?;
 			},
-			(_, _) => {},
+			_ => {},
 		}
 
 		self.state = new_state;

@@ -6,11 +6,11 @@ use crate::robot::state::RobotState;
 pub(crate) fn select(bot: &Robot) -> Result<Option<RobotState>> {
 	let items = RobotState::ALL;
 
-	let mut cursor = 0;
-
 	for (name, _) in items {
 		println!("- {}", name);
 	}
+
+	let mut cursor = 0;
 
 	loop {
 		println!("selected: {:?}", items.get(cursor).map(|x| x.0));
