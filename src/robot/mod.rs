@@ -69,7 +69,7 @@ impl Robot {
 					.context("Failed to get the medium motor")?;
 				motor.set_polarity(MediumMotor::POLARITY_INVERSED)?;
 				motor.set_stop_action(MediumMotor::STOP_ACTION_COAST)?;
-				motor.set_speed_sp(motor.get_max_speed()? / 4)?;
+				motor.set_speed_sp(motor.get_max_speed()?)?;
 				motor
 			},
 		})

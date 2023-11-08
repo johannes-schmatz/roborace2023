@@ -8,6 +8,12 @@ use crate::state::RobotState;
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub(crate) struct Settings {
+	robot_wheel_width: f64,
+	diameter: f64,
+
+	rotate_arm: bool,
+	rotate_arm_speed: f64, // 0..=100
+
 	line_pid: Pid,
 	line_center: f64,
 
@@ -22,6 +28,12 @@ pub(crate) struct Settings {
 impl Default for Settings {
 	fn default() -> Self {
 		Self {
+			robot_wheel_width: 14.0, // obtained by measurement
+			diameter: 100.0,
+
+			rotate_arm: true,
+			rotate_arm_speed: 100.0,
+
 			line_pid: Pid::new(-0.4, 0.0, 0.5),
 			line_center: 50.0,
 
@@ -76,7 +88,7 @@ impl Settings {
 		self.line_pid.set_last(last);
 		println!("set last to {last:?}");
 
-		self.distance_pid.set_last(0.0); // TODO: is this good?
+		self.distance_pid.set_last(2.0 * self.distance_center);
 
 		bot.left.start()?;
 		bot.right.start()?;
@@ -84,12 +96,16 @@ impl Settings {
 		bot.left.set_speed(self.speed)?;
 		bot.right.set_speed(self.speed)?;
 
-		bot.top_arm.run_forever()?;
+		if self.rotate_arm { // TODO: set speed!
+			bot.top_arm.run_forever()?;
+		}
 
 		Ok(())
 	}
 
 	fn drive(&mut self, bot: &Robot) -> Result<()> {
+		self.state = RobotState::Driving;
+
 		let distance = bot.distance.get_distance()?;
 
 		if let Some(distance) = distance {
@@ -107,38 +123,51 @@ impl Settings {
 			}
 		}
 
-		// delta for both
-		let delta_speed_both = if self.state == RobotState::Driving {
+		// 0.5 ..= 1, default 1
+		let delta_speed_both = if true || self.state == RobotState::Driving {
 			// we are actually following the wall
 			if let Some(distance) = distance {
-				let delta_speed = self.distance_pid.update(distance - self.distance_center);
+				// distance from 0 to 255
 
-				print!("{distance:>5.1} => {delta_speed:>5.1} -- ");
+				if distance > 2.0 * self.distance_center {
+					1.0
+					// TODO: distance pid only if value <= 2 * regulated distance!
+				} else {
+					// distance from 0 to 40 (see config)
 
-				delta_speed
+					let delta_speed = self.distance_pid.update(distance - self.distance_center);
+
+					print!("{distance:>5.1} => {delta_speed:>5.1} -- ");
+
+					delta_speed + 1.0
+					// + 1 to make it adjust on top of the base speed and not stop the robot
+					// when the error here is getting to 0
+				}
 			} else {
 				print!("follow wall => -- ");
-				0.0
+				1.0
 			}
 		} else {
 			print!("going for wall -- ");
-			0.0
+			1.0
 		};
 
 		let reflection = bot.color.get_color()?;
 
 		// 2 * this = delta between left and right
-		let delta_speed = self.line_pid.update(reflection - self.line_center);
+		let delta_speed = self.line_pid.update(reflection - self.line_center) / 1000.0;
 
-		if false {
-			println!("ref: {reflection:>5.1} -> l: {:>5.1} r: {:>5.1}", self.speed + delta_speed, self.speed - delta_speed);
-		}
-		println!();
+		let line_after_correction = self.robot_wheel_width / self.diameter;
 
-		let delta_speed = 0.0;
+		let l = self.speed * delta_speed_both * (1.0 + delta_speed + line_after_correction);
+		let r = self.speed * delta_speed_both * (1.0 - delta_speed - line_after_correction);
 
-		bot.left .set_speed(self.speed + delta_speed_both + delta_speed)?;
-		bot.right.set_speed(self.speed + delta_speed_both - delta_speed)?;
+		println!("ref: {reflection:>5.1} -> l: {l:>5.1} r: {r:>5.1}");
+
+		bot.left .set_speed(l)?;
+		bot.right.set_speed(r)?;
+
+		// TODO: if ref < 17 then log!
 
 		Ok(())
 	}

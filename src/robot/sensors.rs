@@ -29,6 +29,7 @@ impl Distance {
 	}
 
 	/// Gets the distance in `cm`, or [None] if either too far away or too close.
+	/// `0 ..= 254.0`
 	pub(crate) fn get_distance(&self) -> Result<Option<f64>> {
 		let distance = self.inner.get_distance_centimeters()
 			.context("Failed to get the distance from sensor")?;
