@@ -19,6 +19,8 @@ fn main() -> Result<()> {
         .arg("/usr/share/consolefonts/Lat2-Terminus14.psf.gz")
         .status()?;
 
+    // TODO: consider running via ssh
+    // TODO: find a way to sync the robot_settings.toml
 
 
     let bot = Robot::new().context("Failed to create robot")?;
