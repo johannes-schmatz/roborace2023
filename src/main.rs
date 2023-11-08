@@ -2,6 +2,7 @@ mod robot;
 mod menu;
 mod pid;
 mod settings;
+mod io;
 
 use anyhow::{Context, Result};
 use std::time::{Duration, Instant};
@@ -41,7 +42,7 @@ fn main() -> Result<()> {
         .arg("/usr/share/consolefonts/Lat2-Terminus14.psf.gz")
         .status()?;
 
-    let mut settings = Settings::get()?;
+    let mut settings = io::read()?;
 
     let next_state = RobotState::get_initial()
         .context("Failed to parse command line arguments")?;
@@ -89,7 +90,7 @@ fn main() -> Result<()> {
 
     res?;
 
-    settings.write()?;
+    io::write(settings)?;
 
     Ok(())
 }
