@@ -1,4 +1,4 @@
-use anyhow::{anyhow, Result};
+use anyhow::{bail, Result};
 
 #[derive(Debug, Clone, Default, PartialEq)]
 pub(crate) enum RobotState {
@@ -6,22 +6,12 @@ pub(crate) enum RobotState {
 	#[default]
 	InMenu,
 	Test,
-	LineMeasure,
-	LineDrive,
+	Measure,
+	Driving,
+	ApproachingWall,
 }
 
 impl RobotState {
-	fn create(string: &str) -> Option<RobotState> {
-		match string {
-			"exit" => Some(RobotState::Exit),
-			"menu" => Some(RobotState::InMenu),
-			"test" => Some(RobotState::Test),
-			"line-measure" => Some(RobotState::LineMeasure),
-			"line" => Some(RobotState::LineDrive),
-			_ => None,
-		}
-	}
-
 	const HELP_TEXT: &'static str =
 		"Usage:\
 		\n    roborace2023 [<subcommand>]\
@@ -30,8 +20,8 @@ impl RobotState {
 		\n    exit            Print out this help text and exit\
 		\n    menu            Open the menu for selecting any robot state\
 		\n    test            Run the quick and dirty test method\
-		\n    line-measure    Measure the line. This has no implementation yet and will panic\
-		\n    line            Start the line driving\
+		\n    measure         Measure the line. This has no implementation yet and will panic\
+		\n    drive           Start the line driving\
 		\n\
 		\nIf no subcommand is given, the robot will go into menu mode";
 
@@ -39,12 +29,10 @@ impl RobotState {
 		("exit", RobotState::Exit),
 		("menu", RobotState::InMenu),
 		("test", RobotState::Test),
-		("line-measure", RobotState::LineMeasure),
-		("line", RobotState::LineDrive),
+		("measure", RobotState::Measure),
+		("drive", RobotState::Driving),
 	];
 
-
-	/// `Ok(None)` indicates to terminate the program
 	pub(crate) fn get_initial() -> Result<RobotState> {
 		if let Some(arg) = std::env::args().skip(1).next() {
 			if arg == "help" {
@@ -53,12 +41,18 @@ impl RobotState {
 				std::process::exit(0)
 			}
 
-			Self::create(&arg)
-				.ok_or_else(|| {
+			match arg.as_str() {
+				"exit" => Ok(RobotState::Exit),
+				"menu" => Ok(RobotState::InMenu),
+				"test" => Ok(RobotState::Test),
+				"measure" => Ok(RobotState::Measure),
+				"drive" => Ok(RobotState::ApproachingWall),
+				_ => {
 					eprintln!("{}", RobotState::HELP_TEXT);
 
-					anyhow!("No sub-command {arg:?} known")
-				})
+					bail!("No sub-command {arg:?} known");
+				}
+			}
 		} else {
 			Ok(RobotState::InMenu)
 		}

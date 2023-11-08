@@ -36,9 +36,6 @@ impl Default for Settings {
 }
 
 impl Settings {
-
-
-
 	fn test(&self, bot: &Robot) -> Result<()> {
 		dbg!(&bot.left);
 		dbg!(&bot.right);
@@ -52,9 +49,7 @@ impl Settings {
 		Ok(())
 	}
 
-
 	fn measure(&self, bot: &Robot) -> Result<()> {
-
 		loop {
 			bot.buttons.update();
 			if bot.buttons.is_right() {
@@ -99,35 +94,36 @@ impl Settings {
 
 		if let Some(distance) = distance {
 			// when run with 10.0 had a distance of about 8 cm
-			if false && distance < 25.0 { // TODO: disabled for now
+			if false && distance < 25.0 { // TODO: disabled for now, as qualification doesn't need it
 				bot.left.stop()?;
 				bot.right.stop()?;
 
 				return self.next_state(bot, RobotState::Exit);
 			}
 
-			if false && distance < 8.0 { // TODO: remove, this is for testing
-				bot.left.stop()?;
-				bot.right.stop()?;
-
-				return self.next_state(bot, RobotState::Exit);
+			if false && distance < 30.0 && self.state == RobotState::ApproachingWall {
+				self.state = RobotState::Driving;
+				println!("Switched to following wall");
 			}
 		}
 
 		// delta for both
-		let delta_speed_both = if let Some(distance) = distance {
-			let delta_speed = self.distance_pid.update(distance - self.distance_center);
+		let delta_speed_both = if self.state == RobotState::Driving {
+			// we are actually following the wall
+			if let Some(distance) = distance {
+				let delta_speed = self.distance_pid.update(distance - self.distance_center);
 
-			print!("{distance:>5.1} => {delta_speed:>5.1} -- ");
+				print!("{distance:>5.1} => {delta_speed:>5.1} -- ");
 
-			delta_speed
+				delta_speed
+			} else {
+				print!("follow wall => -- ");
+				0.0
+			}
 		} else {
-			print!("      =>       -- ");
-
+			print!("going for wall -- ");
 			0.0
 		};
-
-		let delta_speed_both = 0.0;
 
 		let reflection = bot.color.get_color()?;
 
@@ -135,11 +131,11 @@ impl Settings {
 		let delta_speed = self.line_pid.update(reflection - self.line_center);
 
 		if false {
-			println!("{reflection:>5.1} -> l: {:>5.1} r: {:>5.1}", self.speed + delta_speed, self.speed - delta_speed);
+			println!("ref: {reflection:>5.1} -> l: {:>5.1} r: {:>5.1}", self.speed + delta_speed, self.speed - delta_speed);
 		}
+		println!();
 
 		let delta_speed = 0.0;
-		println!();
 
 		bot.left .set_speed(self.speed + delta_speed_both + delta_speed)?;
 		bot.right.set_speed(self.speed + delta_speed_both - delta_speed)?;
@@ -177,11 +173,11 @@ impl Settings {
 				self.next_state(bot, RobotState::Exit)?;
 			},
 
-			RobotState::LineMeasure => {
+			RobotState::Measure => {
 				self.measure(bot)?;
 				self.next_state(bot, RobotState::InMenu)?;
 			},
-			RobotState::LineDrive => {
+			RobotState::ApproachingWall | RobotState::Driving => {
 				self.drive(bot)?;
 			},
 		}
@@ -191,7 +187,7 @@ impl Settings {
 
 	fn next_state(&mut self, bot: &Robot, new_state: RobotState) -> Result<()> {
 		match self.state {
-			RobotState::LineDrive => {
+			RobotState::Driving => {
 				self.end_drive(bot)
 					.context("Failed to end line drive")?;
 			},
@@ -199,7 +195,7 @@ impl Settings {
 		}
 
 		match &new_state {
-			RobotState::LineDrive => {
+			RobotState::ApproachingWall => {
 				self.prepare_drive(bot)
 					.context("Failed to prepare for line drive")?;
 			},
