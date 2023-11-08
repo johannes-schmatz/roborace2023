@@ -1,5 +1,6 @@
 use anyhow::{Context, Result};
 use std::time::Duration;
+use ev3dev_lang_rust::Button as Ev3Button;
 
 macro_rules! button_function {
 	($self:ident, $name:ident, $ret:path) => {
@@ -15,13 +16,13 @@ macro_rules! button_function {
 
 #[derive(Debug)]
 pub(crate) struct Buttons {
-	inner: ev3dev_lang_rust::Button,
+	inner: Ev3Button,
 }
 
 impl Buttons {
 	pub(crate) fn new() -> Result<Buttons> {
 		Ok(Buttons {
-			inner: ev3dev_lang_rust::Button::new()
+			inner: Ev3Button::new()
 				.context("Failed to create buttons")?,
 		})
 	}
@@ -44,8 +45,24 @@ impl Buttons {
 		self.inner.process();
 	}
 
+	pub(crate) fn is_up(&self) -> bool {
+		self.inner.is_up()
+	}
+
+	pub(crate) fn is_down(&self) -> bool {
+		self.inner.is_down()
+	}
+
 	pub(crate) fn is_left(&self) -> bool {
 		self.inner.is_left()
+	}
+
+	pub(crate) fn is_right(&self) -> bool {
+		self.inner.is_right()
+	}
+
+	pub(crate) fn is_enter(&self) -> bool {
+		self.inner.is_enter()
 	}
 }
 
