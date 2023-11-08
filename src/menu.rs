@@ -1,4 +1,4 @@
-use anyhow::{Context, Result};
+use anyhow::Result;
 use crate::robot::button::Button;
 use crate::robot::Robot;
 use crate::robot::state::RobotState;
