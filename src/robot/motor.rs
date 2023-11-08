@@ -58,7 +58,7 @@ impl Motor {
 		if speed < -100 {
 			speed = -100;
 		}
-		self.inner.set_duty_cycle_sp(speed).with_context(|| anyhow!("Failed to set speed {speed}"))
+		self.inner.set_duty_cycle_sp(speed).with_context(|| anyhow!("Failed to set speed {speed} for {}", self.desc))
 	}
 
 	pub(crate) fn stop(&self) -> Result<()> {

@@ -1,22 +1,23 @@
 use std::time::Duration;
 use anyhow::{Context, Result};
 use ev3dev_lang_rust::motors::{LargeMotor, MediumMotor, MotorPort};
-use ev3dev_lang_rust::sensors::{ColorSensor, GyroSensor, SensorPort, TouchSensor, UltrasonicSensor};
+use ev3dev_lang_rust::sensors::{ColorSensor, SensorPort, TouchSensor, UltrasonicSensor};
 use crate::robot::button::Buttons;
 use crate::robot::motor::Motor;
+use crate::robot::sensors::{Color, Distance, Touch};
 
 pub(crate) mod state;
 pub(crate) mod motor;
 pub(crate) mod button;
+pub(crate) mod sensors;
 
 #[derive(Debug)]
 pub(crate) struct Robot {
 	pub(crate) buttons: Buttons,
 
-	pub(crate) color: ColorSensor,
-	//pub(crate) gyro: GyroSensor,
-	pub(crate) distance: UltrasonicSensor,
-	pub(crate) touch: TouchSensor,
+	pub(crate) color: Color,
+	pub(crate) distance: Distance,
+	pub(crate) touch: Touch,
 
 	pub(crate) left: Motor,
 	pub(crate) right: Motor,
@@ -30,14 +31,23 @@ impl Robot {
 			buttons: Buttons::new()
 				.context("Failed to get the robot buttons")?,
 
-			color: ColorSensor::get(SensorPort::In1)
-				.context("Failed to get the color sensor")?,
-			//gyro: GyroSensor::get(SensorPort::In4)
-			//	.context("Failed to get the gyro sensor")?,
-			distance: UltrasonicSensor::get(SensorPort::In3)
-				.context("Failed to get the ultrasonic sensor")?,
-			touch: TouchSensor::get(SensorPort::In2)
-				.context("Failed to get the touch sensor")?,
+			color: {
+				let color = ColorSensor::get(SensorPort::In1)
+					.context("Failed to get the color sensor")?;
+				color.set_mode_col_reflect().context("Failed to set color mode")?;
+				Color::new(color)
+			},
+			distance: {
+				let distance = UltrasonicSensor::get(SensorPort::In3)
+					.context("Failed to get the ultrasonic sensor")?;
+				distance.set_mode_us_dist_cm().context("Failed to set distance mode")?;
+				Distance::new(distance)
+			},
+			touch: {
+				let touch = TouchSensor::get(SensorPort::In2)
+					.context("Failed to get the touch sensor")?;
+				Touch::new(touch)
+			},
 
 			left: {
 				let motor = LargeMotor::get(MotorPort::OutB)

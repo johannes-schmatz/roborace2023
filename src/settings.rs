@@ -49,11 +49,7 @@ impl Settings {
 	}
 
 	fn prepare_drive(&mut self, bot: &Robot) -> Result<()> {
-		bot.distance.set_mode_us_dist_cm().context("Failed to set distance mode")?;
-		//bot.gyro.set_mode_gyro_ang().context("Failed to set gyro mode")?;
-		bot.color.set_mode_col_reflect().context("Failed to set color mode")?;
-
-		let last = bot.color.get_color()? as f64 - self.line_center;
+		let last = bot.color.get_color()? - self.line_center;
 		self.line_pid.set_last(last);
 		println!("set last to {last:?}");
 
@@ -62,8 +58,8 @@ impl Settings {
 		bot.left.start()?;
 		bot.right.start()?;
 
-		bot.left.set_speed(self.speed).context("Failed to set duty cycle left")?;
-		bot.right.set_speed(self.speed).context("Failed to set duty cycle right")?;
+		bot.left.set_speed(self.speed)?;
+		bot.right.set_speed(self.speed)?;
 
 		bot.top_arm.run_forever()?;
 
@@ -71,8 +67,7 @@ impl Settings {
 	}
 
 	fn drive(&mut self, bot: &Robot) -> Result<()> {
-		let distance = bot.distance.get_distance_centimeters()?;
-		let distance = if distance == 255.0 { None } else { Some(distance as f64) };
+		let distance = bot.distance.get_distance()?;
 
 		if let Some(distance) = distance {
 			// when run with 10.0 had a distance of about 8 cm
@@ -106,7 +101,7 @@ impl Settings {
 
 		let delta_speed_both = 0.0;
 
-		let reflection = bot.color.get_color()? as f64;
+		let reflection = bot.color.get_color()?;
 
 		// 2 * this = delta between left and right
 		let delta_speed = self.line_pid.update(reflection - self.line_center);
