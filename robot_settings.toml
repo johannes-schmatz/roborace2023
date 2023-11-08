@@ -1,13 +1,25 @@
-[gradient]
-center = 0.0
+# the wheel width of the robot, actually something about 14.0
+robot_wheel_width = -16.0
+
+# the diameter of the base circle
+diameter = 100
+#diameter = 75
+
+rotate_arm = false
+rotate_arm_speed = 25.0
+
+line_center = 50.0
+
+distance_center = 20.0
+
 speed = 50.0
 
-[gradient.pid]
-k_p = 0.1
+[line_pid]
+k_p = -8.0
 k_i = 0.0
-k_d = 0.1
+k_d = 10.0
 
-[line.pid]
+[distance_pid]
 k_p = 0.1
 k_i = 0.0
-k_d = 0.1
+k_d = 0.0
