@@ -34,7 +34,9 @@ fn main() -> Result<()> {
 
     res?;
 
-    io::write(settings).context("Failed to write the config file")?;
+    if false {
+        io::write(settings).context("Failed to write the config file")?;
+    }
 
     Ok(())
 }
