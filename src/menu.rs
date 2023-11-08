@@ -1,7 +1,7 @@
 use anyhow::Result;
 use crate::robot::button::Button;
 use crate::robot::Robot;
-use crate::robot::state::RobotState;
+use crate::state::RobotState;
 
 pub(crate) fn select(bot: &Robot) -> Result<Option<RobotState>> {
 	let items = RobotState::ALL;

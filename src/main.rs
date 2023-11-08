@@ -3,6 +3,7 @@ mod menu;
 mod pid;
 mod settings;
 mod io;
+mod state;
 
 use anyhow::{Context, Result};
 

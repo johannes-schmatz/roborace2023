@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use crate::menu;
 use crate::pid::Pid;
 use crate::robot::Robot;
-use crate::robot::state::RobotState;
+use crate::state::RobotState;
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub(crate) struct Settings {

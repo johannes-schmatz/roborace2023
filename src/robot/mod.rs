@@ -5,7 +5,6 @@ use crate::robot::button::Buttons;
 use crate::robot::motor::Motor;
 use crate::robot::sensors::{Color, Distance, Touch};
 
-pub(crate) mod state;
 pub(crate) mod motor;
 pub(crate) mod button;
 pub(crate) mod sensors;
