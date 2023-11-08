@@ -1,4 +1,3 @@
-use std::time::Duration;
 use anyhow::{Context, Result};
 use ev3dev_lang_rust::motors::{LargeMotor, MediumMotor, MotorPort};
 use ev3dev_lang_rust::sensors::{ColorSensor, SensorPort, TouchSensor, UltrasonicSensor};
@@ -75,44 +74,5 @@ impl Robot {
 				motor
 			},
 		})
-	}
-
-	pub(crate) fn test(&self) -> Result<()> {
-		dbg!(&self.left);
-		dbg!(&self.right);
-
-		/*
-		self.left.set_speed(100f64)?;
-		self.right.set_speed(100f64)?;
-
-		self.left.start()?;
-		self.right.start()?;
-
-		std::thread::sleep(Duration::from_secs(3));
-
-		self.left.set_speed(-100f64)?;
-		self.right.set_speed(-100f64)?;
-
-		std::thread::sleep(Duration::from_secs(4));
-
-		self.left.set_speed(100f64)?;
-		self.right.set_speed(100f64)?;
-
-		std::thread::sleep(Duration::from_secs(1));
-
-		self.left.stop()?;
-		self.right.stop()?;
-
-		std::thread::sleep(Duration::from_secs(3));
-
-		 */
-
-			self.top_arm.run_forever()?;
-
-			std::thread::sleep(Duration::from_secs(4));
-
-			self.top_arm.stop()?;
-
-		Ok(())
 	}
 }

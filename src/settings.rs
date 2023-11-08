@@ -1,5 +1,5 @@
 use anyhow::{Context, Result};
-use std::time::Duration;
+use std::time::{Duration, Instant};
 use serde::{Deserialize, Serialize};
 use crate::menu;
 use crate::pid::Pid;
@@ -38,7 +38,35 @@ impl Default for Settings {
 impl Settings {
 
 
+
+	fn test(&self, bot: &Robot) -> Result<()> {
+		dbg!(&bot.left);
+		dbg!(&bot.right);
+
+		bot.top_arm.run_forever()?;
+
+		std::thread::sleep(Duration::from_secs(4));
+
+		bot.top_arm.stop()?;
+
+		Ok(())
+	}
+
+
 	fn measure(&self, bot: &Robot) -> Result<()> {
+
+		loop {
+			bot.buttons.update();
+			if bot.buttons.is_right() {
+				break;
+			}
+
+			let color = bot.color.get_color()?;
+			println!("{:?}", color);
+
+			std::thread::sleep(Duration::from_secs(1));
+		}
+
 		// TODO: measure
 		// We want to drive over the line to figure out if min/max value are actually fine
 		// and not only print them (all of the values), but also use them to find the perfect middle
@@ -128,8 +156,7 @@ impl Settings {
 		Ok(())
 	}
 
-	/// Return `Ok(true)` to end the program, `Ok(false)` otherwise.
-	pub(crate) fn tick(&mut self, bot: &Robot) -> Result<bool> {
+	fn tick(&mut self, bot: &Robot) -> Result<bool> {
 		bot.buttons.update();
 		if bot.buttons.is_left() {
 			std::thread::sleep(Duration::from_millis(300));
@@ -138,11 +165,6 @@ impl Settings {
 
 		match self.state {
 			RobotState::Exit => {
-				// try to stop the motors
-				let _ = bot.left.stop();
-				let _ = bot.right.stop();
-				let _ = bot.top_arm.stop();
-
 				return Ok(true)
 			},
 			RobotState::InMenu => {
@@ -151,7 +173,7 @@ impl Settings {
 				}
 			},
 			RobotState::Test => {
-				bot.test()?;
+				self.test(bot)?;
 				self.next_state(bot, RobotState::Exit)?;
 			},
 
@@ -167,7 +189,7 @@ impl Settings {
 		Ok(false)
 	}
 
-	pub(crate) fn next_state(&mut self, bot: &Robot, new_state: RobotState) -> Result<()> {
+	fn next_state(&mut self, bot: &Robot, new_state: RobotState) -> Result<()> {
 		match self.state {
 			RobotState::LineDrive => {
 				self.end_drive(bot)
@@ -185,6 +207,37 @@ impl Settings {
 		}
 
 		self.state = new_state;
+		Ok(())
+	}
+
+
+	pub(crate) fn main(&mut self, bot: &Robot) -> Result<()> {
+		let initial_state = RobotState::get_initial().context("Failed to parse command line arguments")?;
+		self.next_state(&bot, initial_state)?;
+
+		// we do 100 ticks per second
+		let tick_time = Duration::from_millis(10);
+		let mut n = 0;
+		loop {
+			let start = Instant::now();
+
+			if self.tick(&bot).context("Failed to tick robot")? {
+				break;
+			}
+
+			let end = start.elapsed();
+
+			if n == 0 {
+				println!("tick took: {:?}", end);
+			}
+			n += 1;
+			n %= 20;
+
+			if let Some(dur) = tick_time.checked_sub(end) {
+				std::thread::sleep(dur)
+			}
+		}
+
 		Ok(())
 	}
 }
