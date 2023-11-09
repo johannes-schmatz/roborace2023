@@ -1,9 +1,9 @@
 use anyhow::{Context, Result};
-use ev3dev_lang_rust::motors::{LargeMotor, MediumMotor, MotorPort};
-use ev3dev_lang_rust::sensors::{ColorSensor, SensorPort, TouchSensor, UltrasonicSensor};
+use ev3dev_lang_rust::motors::MotorPort;
+use ev3dev_lang_rust::sensors::SensorPort;
 use crate::robot::button::Buttons;
-use crate::robot::motor::Motor;
-use crate::robot::sensors::{Color, Distance, Touch};
+use crate::robot::motor::{Ev3LargeMotor, Ev3SmallMotor, LargeMotor, SmallMotor};
+use crate::robot::sensors::{ColorSensor, DistanceSensor, Ev3ColorSensor, Ev3DistanceSensor, Ev3TouchSensor, TouchSensor};
 
 pub(crate) mod motor;
 pub(crate) mod button;
@@ -13,14 +13,14 @@ pub(crate) mod sensors;
 pub(crate) struct Robot {
 	pub(crate) buttons: Buttons,
 
-	pub(crate) color: Color,
-	pub(crate) distance: Distance,
-	pub(crate) touch: Touch,
+	pub(crate) color: ColorSensor,
+	pub(crate) distance: DistanceSensor,
+	pub(crate) touch: TouchSensor,
 
-	pub(crate) left: Motor,
-	pub(crate) right: Motor,
+	pub(crate) left: LargeMotor,
+	pub(crate) right: LargeMotor,
 
-	pub(crate) top_arm: MediumMotor,
+	pub(crate) top_arm: SmallMotor,
 }
 
 impl Robot {
@@ -30,47 +30,47 @@ impl Robot {
 				.context("Failed to get the robot buttons")?,
 
 			color: {
-				let color = ColorSensor::get(SensorPort::In1)
+				let color = Ev3ColorSensor::get(SensorPort::In1)
 					.context("Failed to get the color sensor")?;
 				color.set_mode_col_reflect().context("Failed to set color mode")?;
-				Color::new(color)
+				ColorSensor::new(color)
 			},
 			distance: {
-				let distance = UltrasonicSensor::get(SensorPort::In3)
+				let distance = Ev3DistanceSensor::get(SensorPort::In3)
 					.context("Failed to get the ultrasonic sensor")?;
 				distance.set_mode_us_dist_cm().context("Failed to set distance mode")?;
-				Distance::new(distance)
+				DistanceSensor::new(distance)
 			},
 			touch: {
-				let touch = TouchSensor::get(SensorPort::In2)
+				let touch = Ev3TouchSensor::get(SensorPort::In2)
 					.context("Failed to get the touch sensor")?;
-				Touch::new(touch)
+				TouchSensor::new(touch)
 			},
 
 			left: {
-				let motor = LargeMotor::get(MotorPort::OutB)
+				let motor = Ev3LargeMotor::get(MotorPort::OutB)
 					.context("Failed to get the left motor")?;
-				//motor.set_polarity(LargeMotor::POLARITY_INVERSED)?;
-				motor.set_stop_action(LargeMotor::STOP_ACTION_BRAKE)?;
+				//motor.set_polarity(Ev3LargeMotor::POLARITY_INVERSED)?;
+				motor.set_stop_action(Ev3LargeMotor::STOP_ACTION_BRAKE)?;
 				motor.set_speed_sp(motor.get_max_speed()?)?;
-				Motor::new(motor, "left")
+				LargeMotor::new(motor, "left")
 			},
 			right: {
-				let motor = LargeMotor::get(MotorPort::OutA)
+				let motor = Ev3LargeMotor::get(MotorPort::OutA)
 					.context("Failed to get the right motor")?;
-				//motor.set_polarity(LargeMotor::POLARITY_INVERSED)?;
-				motor.set_stop_action(LargeMotor::STOP_ACTION_BRAKE)?;
+				//motor.set_polarity(Ev3LargeMotor::POLARITY_INVERSED)?;
+				motor.set_stop_action(Ev3LargeMotor::STOP_ACTION_BRAKE)?;
 				motor.set_speed_sp(motor.get_max_speed()?)?;
-				Motor::new(motor, "right")
+				LargeMotor::new(motor, "right")
 			},
 
 			top_arm: {
-				let motor = MediumMotor::get(MotorPort::OutC)
+				let motor = Ev3SmallMotor::get(MotorPort::OutC)
 					.context("Failed to get the medium motor")?;
-				motor.set_polarity(MediumMotor::POLARITY_INVERSED)?;
-				motor.set_stop_action(MediumMotor::STOP_ACTION_COAST)?;
+				motor.set_polarity(Ev3SmallMotor::POLARITY_INVERSED)?;
+				motor.set_stop_action(Ev3SmallMotor::STOP_ACTION_COAST)?;
 				motor.set_speed_sp(motor.get_max_speed()?)?;
-				motor
+				SmallMotor::new(motor, "top")
 			},
 		})
 	}

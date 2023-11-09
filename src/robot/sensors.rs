@@ -1,14 +1,18 @@
 use anyhow::{Context, Result};
-use ev3dev_lang_rust::sensors::{ColorSensor, TouchSensor, UltrasonicSensor};
+pub(crate) use ev3dev_lang_rust::sensors::{
+	ColorSensor as Ev3ColorSensor,
+	TouchSensor as Ev3TouchSensor,
+	UltrasonicSensor as Ev3DistanceSensor
+};
 
 #[derive(Debug)] // TODO: see Motor for how to impl
-pub(crate) struct Color {
-	inner: ColorSensor,
+pub(crate) struct ColorSensor {
+	inner: Ev3ColorSensor,
 }
 
-impl Color {
-	pub(crate) fn new(inner: ColorSensor) -> Color {
-		Color { inner }
+impl ColorSensor {
+	pub(crate) fn new(inner: Ev3ColorSensor) -> ColorSensor {
+		ColorSensor { inner }
 	}
 
 	pub(crate) fn get_color(&self) -> Result<f64> {
@@ -19,13 +23,13 @@ impl Color {
 }
 
 #[derive(Debug)] // TODO: see Motor for how to impl
-pub(crate) struct Distance {
-	inner: UltrasonicSensor,
+pub(crate) struct DistanceSensor {
+	inner: Ev3DistanceSensor,
 }
 
-impl Distance {
-	pub(crate) fn new(inner: UltrasonicSensor) -> Distance {
-		Distance { inner }
+impl DistanceSensor {
+	pub(crate) fn new(inner: Ev3DistanceSensor) -> DistanceSensor {
+		DistanceSensor { inner }
 	}
 
 	/// Gets the distance in `cm`, or [None] if either too far away or too close.
@@ -42,13 +46,13 @@ impl Distance {
 }
 
 #[derive(Debug)] // TODO: see Motor for how to impl
-pub(crate) struct Touch {
-	inner: TouchSensor,
+pub(crate) struct TouchSensor {
+	inner: Ev3TouchSensor,
 }
 
-impl Touch {
-	pub(crate) fn new(inner: TouchSensor) -> Touch {
-		Touch { inner }
+impl TouchSensor {
+	pub(crate) fn new(inner: Ev3TouchSensor) -> TouchSensor {
+		TouchSensor { inner }
 	}
 
 	pub(crate) fn is_pressed(&self) -> Result<bool> {

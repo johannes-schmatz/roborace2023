@@ -52,7 +52,8 @@ impl Settings {
 		dbg!(&bot.left);
 		dbg!(&bot.right);
 
-		bot.top_arm.run_forever()?;
+		bot.top_arm.start()?;
+		bot.top_arm.set_speed(100.0)?;
 
 		std::thread::sleep(Duration::from_secs(4));
 
@@ -96,8 +97,9 @@ impl Settings {
 		bot.left.set_speed(self.speed)?;
 		bot.right.set_speed(self.speed)?;
 
-		if self.rotate_arm { // TODO: set speed!
-			bot.top_arm.run_forever()?;
+		if self.rotate_arm {
+			bot.top_arm.start()?;
+			bot.top_arm.set_speed(self.rotate_arm_speed)?;
 		}
 
 		Ok(())
