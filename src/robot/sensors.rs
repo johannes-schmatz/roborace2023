@@ -1,3 +1,4 @@
+use std::fmt::{Debug, Formatter};
 use anyhow::{Context, Result};
 pub(crate) use ev3dev_lang_rust::sensors::{
 	ColorSensor as Ev3ColorSensor,
@@ -5,9 +6,27 @@ pub(crate) use ev3dev_lang_rust::sensors::{
 	UltrasonicSensor as Ev3DistanceSensor
 };
 
-#[derive(Debug)] // TODO: see Motor for how to impl
+fn fmt<'a, T: Debug, E>(value: &'a Result<T, E>) -> &'a dyn Debug {
+	if let Ok(v) = value {
+		v
+	} else {
+		&""
+	}
+}
+
 pub(crate) struct ColorSensor {
 	inner: Ev3ColorSensor,
+}
+
+impl Debug for ColorSensor {
+	fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+		f.debug_struct("Color")
+			.field("color", fmt(&self.inner.get_color()))
+			.field("red", fmt(&self.inner.get_red()))
+			.field("green", fmt(&self.inner.get_green()))
+			.field("blue", fmt(&self.inner.get_blue()))
+			.finish()
+	}
 }
 
 impl ColorSensor {
@@ -22,9 +41,16 @@ impl ColorSensor {
 	}
 }
 
-#[derive(Debug)] // TODO: see Motor for how to impl
 pub(crate) struct DistanceSensor {
 	inner: Ev3DistanceSensor,
+}
+
+impl Debug for DistanceSensor {
+	fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+		f.debug_struct("Distance")
+			.field("distance", fmt(&self.inner.get_distance_centimeters()))
+			.finish()
+	}
 }
 
 impl DistanceSensor {
@@ -45,9 +71,16 @@ impl DistanceSensor {
 	}
 }
 
-#[derive(Debug)] // TODO: see Motor for how to impl
 pub(crate) struct TouchSensor {
 	inner: Ev3TouchSensor,
+}
+
+impl Debug for TouchSensor {
+	fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+		f.debug_struct("Touch")
+			.field("pressed", fmt(&self.inner.get_pressed_state()))
+			.finish()
+	}
 }
 
 impl TouchSensor {

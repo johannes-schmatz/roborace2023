@@ -1,8 +1,15 @@
 use std::fmt::{Debug, Formatter};
 use anyhow::{anyhow, Context, Result};
-use ev3dev_lang_rust::Ev3Result;
 pub(crate) use ev3dev_lang_rust::motors::LargeMotor as Ev3LargeMotor;
 pub(crate) use ev3dev_lang_rust::motors::MediumMotor as Ev3SmallMotor;
+
+fn fmt<'a, T: Debug, E>(value: &'a Result<T, E>) -> &'a dyn Debug {
+	if let Ok(v) = value {
+		v
+	} else {
+		&""
+	}
+}
 
 #[derive(Clone)]
 pub(crate) struct LargeMotor {
@@ -12,13 +19,6 @@ pub(crate) struct LargeMotor {
 
 impl Debug for LargeMotor {
 	fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-		fn fmt<'a, T: Debug>(value: &'a Ev3Result<T>) -> &'a dyn Debug {
-			if let Ok(v) = value {
-				v
-			} else {
-				&""
-			}
-		}
 		f.debug_struct("Motor")
 			.field("desc", &self.desc)
 			.field("position", fmt(&self.inner.get_position()))
@@ -79,13 +79,6 @@ pub(crate) struct SmallMotor {
 
 impl Debug for SmallMotor {
 	fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-		fn fmt<'a, T: Debug>(value: &'a Ev3Result<T>) -> &'a dyn Debug {
-			if let Ok(v) = value {
-				v
-			} else {
-				&""
-			}
-		}
 		f.debug_struct("Motor")
 			.field("desc", &self.desc)
 			.field("position", fmt(&self.inner.get_position()))
