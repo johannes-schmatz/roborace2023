@@ -1,25 +1,68 @@
+# This file belongs on the robot
+
+rotate_arm = true
+rotate_arm_speed = 25.0
+
 # the wheel width of the robot, actually something about 14.0
-robot_wheel_width = -16.0
+robot_wheel_width = 16.0
 
 # the diameter of the base circle
-diameter = 100
-#diameter = 75
-
-rotate_arm = false
-rotate_arm_speed = 25.0
+# negative means counter clockwise rotation
+#diameter = -129.0
+#diameter = -78.0
+diameter = -129.0
 
 line_center = 50.0
 
 distance_center = 20.0
 
-speed = 50.0
+speed = 25.0
+
+# table of values that work:
+#
+# wwidth | diameter | lcenter | speed | l k_p | l k_i | l k_d | real speed | comment
+#
+# real radius: 78
+#   16.0 |    -78.0 |    50.0 |  20.0 |  -2.0 |   0.0 |   0.0 |   6.1 cm/s |
+#   16.0 |    -78.0 |    50.0 |  30.0 |  -2.0 |   0.0 |   0.0 |  11.8 cm/s |
+#   16.0 |    -78.0 |    50.0 |  40.0 |  -2.0 |   0.0 |   0.0 |  17.1 cm/s |
+#   16.0 |    -78.0 |    50.0 |  50.0 |  -2.0 |   0.0 |   0.0 |  22.5 cm/s |
+#   16.0 |    -78.0 |    50.0 |  60.0 |  -2.0 |   0.0 |   0.0 |  27.4 cm/s |
+#   16.0 |    -78.0 |    50.0 |  70.0 |  -2.0 |   0.0 |   0.0 |  33.2 cm/s |
+#   16.0 |    -78.0 |    50.0 |  80.0 |  -2.0 |   0.0 |   0.0 |    .  cm/s | breaks!
+#
+# real radius: 93 and 98 (the one I drew)
+#   16.0 |    -95.0 |    50.0 |  30.0 |  -2.0 |   0.0 |   0.0 |  10.9 cm/s |
+#   16.0 |    -95.0 |    50.0 |  40.0 |  -2.0 |   0.0 |   0.0 |  16.0 cm/s |
+#   16.0 |    -95.0 |    50.0 |  50.0 |  -2.0 |   0.0 |   0.0 |  20.9 cm/s |
+#   16.0 |    -95.0 |    50.0 |  60.0 |  -2.0 |   0.0 |   0.0 |  25.7 cm/s |
+#   16.0 |    -95.0 |    50.0 |  70.0 |  -2.0 |   0.0 |   0.0 |  30.7 cm/s | not as optimal, leaves track
+#   16.0 |    -95.0 |    50.0 |  80.0 |  -2.0 |   0.0 |   0.0 |    .  cm/s | doesn't work
+#
+# older values:
+#   16.0 |   -100.0 |    50.0 |  50.0 |  -8.0 |   0.0 |  10.0 |
+#   16.0 |   -100.0 |    50.0 |  50.0 |  -7.0 |   0.0 |  10.0 |
+#
+# real radius: 128 and 130
+#   16.0 |   -129.0 |    50.0 |  20.0 |  -2.0 |   0.0 |   0.0 |   6.4 cm/s |
+#   16.0 |   -129.0 |    50.0 |  30.0 |  -2.0 |   0.0 |   0.0 |  12.0 cm/s |
+#   16.0 |   -129.0 |    50.0 |  40.0 |  -2.0 |   0.0 |   0.0 |  17.2 cm/s |
+#   16.0 |   -129.0 |    50.0 |  50.0 |  -2.0 |   0.0 |   0.0 |  22.2 cm/s |
+#   16.0 |   -129.0 |    50.0 |  60.0 |  -2.0 |   0.0 |   0.0 |  28.5 cm/s |
+#   16.0 |   -129.0 |    50.0 |  70.0 |  -2.0 |   0.0 |   0.0 |  33.3 cm/s |
+#   16.0 |   -129.0 |    50.0 |  80.0 |  -2.0 |   0.0 |   0.0 |  38.3 cm/s | not as optimal as 70
+#
+# older values:
+#   16.0 |   -129.0 |    50.0 |  50.0 |  -7.0 |   0.0 |  10.0 |
+#   16.0 |   -129.0 |    50.0 |  30.0 |  -7.0 |   0.0 |  10.0 |  13.1 cm/s | not optimal
+#
 
 [line_pid]
-k_p = -8.0
+k_p = -6.0
 k_i = 0.0
-k_d = 10.0
+k_d = 0.0
 
 [distance_pid]
-k_p = 0.1
+k_p = 0.05
 k_i = 0.0
 k_d = 0.0
