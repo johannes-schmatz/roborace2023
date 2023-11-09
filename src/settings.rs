@@ -6,6 +6,17 @@ use crate::pid::Pid;
 use crate::robot::Robot;
 use crate::state::RobotState;
 
+/*
+how to qualification:
+- run ./run.sh measure
+- diameter circle!
+- PID circle driving!
+- set distance center!
+
+also check:
+rotate_arm = false
+ */
+
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub(crate) struct Settings {
 	robot_wheel_width: f64,
@@ -53,7 +64,7 @@ impl Settings {
 		dbg!(&bot.right);
 
 		bot.top_arm.start()?;
-		bot.top_arm.set_speed(100.0)?;
+		bot.top_arm.set_speed(self.rotate_arm_speed)?;
 
 		std::thread::sleep(Duration::from_secs(4));
 
@@ -98,6 +109,10 @@ impl Settings {
 
 		if self.rotate_arm {
 			bot.top_arm.start()?;
+
+			// force the arm to start up
+			bot.top_arm.set_speed(50.0)?;
+			std::thread::sleep(Duration::from_millis(100));
 			bot.top_arm.set_speed(self.rotate_arm_speed)?;
 		}
 
@@ -156,6 +171,10 @@ impl Settings {
 		let line_correction = self.line_pid.update(reflection - self.line_center) / 1000.0;
 
 		let line_after_correction = self.robot_wheel_width / self.diameter;
+		// if self.diameter == 0 then set this to 0!! (allows us to declare no diameter at all
+		// or use Option<f64>
+
+		// TODO: cmd line option for running left/right a tiny bit
 
 		let l = self.speed * speed_correction * (1.0 + line_correction + line_after_correction);
 		let r = self.speed * speed_correction * (1.0 - line_correction - line_after_correction);
