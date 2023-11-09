@@ -72,11 +72,10 @@ impl Settings {
 			let color = bot.color.get_color()?;
 			println!("{:?}", color);
 
-			std::thread::sleep(Duration::from_secs(1));
+			std::thread::sleep(Duration::from_millis(500));
 		}
 
-		// TODO: measure
-		// We want to drive over the line to figure out if min/max value are actually fine
+		//TODO: We want to drive over the line to figure out if min/max value are actually fine
 		// and not only print them (all of the values), but also use them to find the perfect middle
 		// to "ride" on. We should need to actively accept the values, so they don't end up in the
 		// config file by accident.
@@ -92,9 +91,9 @@ impl Settings {
 		self.distance_pid.set_last(2.0 * self.distance_center);
 
 		bot.left.start()?;
-		bot.right.start()?;
-
 		bot.left.set_speed(self.speed)?;
+
+		bot.right.start()?;
 		bot.right.set_speed(self.speed)?;
 
 		if self.rotate_arm {
@@ -126,50 +125,49 @@ impl Settings {
 		}
 
 		// 0.5 ..= 1, default 1
-		let delta_speed_both = if true || self.state == RobotState::Driving {
-			// we are actually following the wall
-			if let Some(distance) = distance {
-				// distance from 0 to 255
+		let speed_correction = if let Some(distance) = distance {
+			// distance from 0 to 255
+			if true || self.state == RobotState::Driving {
+				// we are actually following the wall
 
-				if distance > 2.0 * self.distance_center {
-					1.0
-					// TODO: distance pid only if value <= 2 * regulated distance!
-				} else {
-					// distance from 0 to 40 (see config)
+				if distance < 2.0 * self.distance_center {
+					let speed_correction = self.distance_pid.update(distance - self.distance_center);
 
-					let delta_speed = self.distance_pid.update(distance - self.distance_center);
+					print!("{distance:>5.1} => {speed_correction:>5.1} -- ");
 
-					print!("{distance:>5.1} => {delta_speed:>5.1} -- ");
-
-					delta_speed + 1.0
+					1.0 + speed_correction
 					// + 1 to make it adjust on top of the base speed and not stop the robot
 					// when the error here is getting to 0
+				} else {
+					1.0
 				}
 			} else {
 				print!("follow wall => -- ");
 				1.0
 			}
 		} else {
-			print!("going for wall -- ");
+			print!("no useful dist -- ");
 			1.0
 		};
 
 		let reflection = bot.color.get_color()?;
 
 		// 2 * this = delta between left and right
-		let delta_speed = self.line_pid.update(reflection - self.line_center) / 1000.0;
+		let line_correction = self.line_pid.update(reflection - self.line_center) / 1000.0;
 
 		let line_after_correction = self.robot_wheel_width / self.diameter;
 
-		let l = self.speed * delta_speed_both * (1.0 + delta_speed + line_after_correction);
-		let r = self.speed * delta_speed_both * (1.0 - delta_speed - line_after_correction);
+		let l = self.speed * speed_correction * (1.0 + line_correction + line_after_correction);
+		let r = self.speed * speed_correction * (1.0 - line_correction - line_after_correction);
 
 		println!("ref: {reflection:>5.1} -> l: {l:>5.1} r: {r:>5.1}");
 
+		if reflection < 17.0 {
+			print!(" low ref!");
+		}
+
 		bot.left .set_speed(l)?;
 		bot.right.set_speed(r)?;
-
-		// TODO: if ref < 17 then log!
 
 		Ok(())
 	}
