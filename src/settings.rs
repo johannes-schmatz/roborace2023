@@ -8,13 +8,11 @@ use crate::state::RobotState;
 
 /*
 how to qualification:
+- put settings file on the robot
 - run ./run.sh measure
-- diameter circle!
-- PID circle driving!
-- set distance center!
-
-also check:
-rotate_arm = false
+- diameter circle
+- PID circle driving
+- set distance center
  */
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
