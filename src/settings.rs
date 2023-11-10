@@ -6,15 +6,6 @@ use crate::pid::Pid;
 use crate::robot::Robot;
 use crate::state::RobotState;
 
-/*
-how to qualification:
-- put settings file on the robot
-- run ./run.sh measure
-- diameter circle
-- PID circle driving
-- set distance center
- */
-
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub(crate) struct Settings {
 	robot_wheel_width: f64,
@@ -28,6 +19,8 @@ pub(crate) struct Settings {
 
 	distance_pid: Pid,
 	distance_center: f64,
+	distance_trigger: f64,
+
 	speed: f64,
 
 	#[serde(skip)]
@@ -48,6 +41,7 @@ impl Default for Settings {
 
 			distance_pid: Pid::new(1.0, 0.0, 0.0),
 			distance_center: 20.0,
+			distance_trigger: 40.0,
 
 			speed: 50.0,
 
@@ -97,7 +91,7 @@ impl Settings {
 		self.line_pid.set_last(last);
 		println!("set last to {last:?}");
 
-		self.distance_pid.set_last(2.0 * self.distance_center);
+		self.distance_pid.set_last(self.distance_trigger);
 
 		bot.left.start()?;
 		bot.left.set_speed(self.speed)?;
@@ -143,7 +137,7 @@ impl Settings {
 			if true || self.state == RobotState::Driving {
 				// we are actually following the wall
 
-				if distance < 2.0 * self.distance_center {
+				if distance < self.distance_trigger {
 					let speed_correction = self.distance_pid.update(distance - self.distance_center);
 
 					print!("{distance:>5.1} => {speed_correction:>5.1} -- ");

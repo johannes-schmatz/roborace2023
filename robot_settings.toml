@@ -4,21 +4,21 @@ rotate_arm = false
 rotate_arm_speed = 25.0
 
 # the wheel width of the robot, actually something about 14.0
-robot_wheel_width = 16.0
+robot_wheel_width = 0 # 16.0 # set to 0 to use no drall!
 
 # the diameter of the base circle
 # negative means counter clockwise rotation
 #diameter = -129.0
 #diameter = -78.0
 #diameter = -129.0
-#diameter = -120.0
-diameter = -120.0
+diameter = -100.0
 
 line_center = 50.0
 
 distance_center = 30.0
+distance_trigger = 40.0
 
-speed = 40.0
+speed = 30.0
 
 # table of values that work:
 #
@@ -60,7 +60,7 @@ speed = 40.0
 #
 
 [line_pid]
-k_p = -6.0
+k_p = -8.0
 k_i = 0.0
 k_d = 0.0
 
