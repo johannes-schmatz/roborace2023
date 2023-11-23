@@ -30,6 +30,8 @@ pub(crate) struct Program {
 
 	#[serde(skip)]
 	state: RobotState,
+	#[serde(skip)]
+	top_motor_started: Option<usize>,
 }
 
 impl Default for Program {
@@ -56,6 +58,7 @@ impl Default for Program {
 			speed: 50.0,
 
 			state: RobotState::default(),
+			top_motor_started: None,
 		}
 	}
 }
@@ -107,7 +110,7 @@ impl Program {
 		Ok(())
 	}
 
-	fn drive(&mut self, bot: &Robot) -> Result<()> {
+	fn drive(&mut self, bot: &Robot, tick_counter: usize) -> Result<()> {
 		if self.log {
 			match self.state {
 				RobotState::DriveSimpleOnly => print!("si "),
@@ -138,8 +141,7 @@ impl Program {
 
 					// force the arm to start up
 					bot.top_arm.set_speed(50.0)?;
-					//std::thread::sleep(Duration::from_millis(100));
-					//bot.top_arm.set_speed(self.rotate_arm_speed)?;
+					self.top_motor_started = Some(tick_counter);
 				}
 			}
 
@@ -147,6 +149,12 @@ impl Program {
 				self.state = RobotState::DriveExit;
 				bot.top_arm.stop()?;
 			}
+		}
+
+		// use this to offset the top motor speed setting
+		if self.top_motor_started.is_some_and(|x| x + 10 < tick_counter) { // 10 = 100ms
+			bot.top_arm.set_speed(self.rotate_arm_speed)?;
+			self.top_motor_started = None;
 		}
 
 		// -0.5 ..= 0.5, default 0
@@ -219,7 +227,7 @@ impl Program {
 		Ok(())
 	}
 
-	fn tick(&mut self, bot: &Robot) -> Result<bool> {
+	fn tick(&mut self, bot: &Robot, tick_counter: usize) -> Result<bool> {
 		bot.buttons.update();
 		if bot.buttons.is_left() {
 			std::thread::sleep(Duration::from_millis(300));
@@ -248,7 +256,7 @@ impl Program {
 			RobotState::DriveEntry |
 			RobotState::DriveFollow |
 			RobotState::DriveExit => {
-				self.drive(bot)?;
+				self.drive(bot, tick_counter)?;
 			},
 		}
 
@@ -330,21 +338,20 @@ impl Program {
 
 		// we do 100 ticks per second
 		let tick_time = Duration::from_millis(10);
-		let mut n = 0;
+		let mut counter = 0usize; // 31 bit are sufficient for 99h of incrementing this, this should not fail
 		loop {
 			let start = Instant::now();
 
-			if self.tick(bot).context("Failed to tick robot")? {
+			if self.tick(bot, counter).context("Failed to tick robot")? {
 				break;
 			}
 
 			let end = start.elapsed();
 
-			if n == 0 && self.log {
+			if self.log && counter % 100 == 0 {
 				println!("tick took: {:?}", end);
 			}
-			n += 1;
-			n %= 20;
+			counter += 1;
 
 			if let Some(dur) = tick_time.checked_sub(end) {
 				std::thread::sleep(dur)
