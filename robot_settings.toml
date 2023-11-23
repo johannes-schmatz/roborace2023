@@ -3,6 +3,9 @@
 # To log to the console or to not log to the console
 log = true
 
+# when to warn for low reflection
+low_ref_warn = 17.0
+
 rotate_arm = false
 rotate_arm_speed = 25.0
 
@@ -13,26 +16,9 @@ robot_wheel_width = 16.0
 
 # the diameter of the base circle
 # negative means counter clockwise rotation
-#diameter = -129.0
 diameter = -78.0
 #diameter = -100.0
-
-line_center = 50.0
-
-# the center to regulate the distance on
-distance_center = 30.0
-
-# the distance where if below to try to regulate the distance
-distance_trigger = 40.0
-
-# when to warn for low reflection
-low_ref_warn = 17.0
-
-# the distance to stop when on the exit track
-stop_distance = 20.0
-
-# The robot speed.
-speed = 80.0
+#diameter = -129.0
 
 # table of values that work:
 #
@@ -72,7 +58,7 @@ speed = 80.0
 #   16.0 |   -129.0 |    50.0 |  50.0 |  -7.0 |   0.0 |  10.0 |
 #   16.0 |   -129.0 |    50.0 |  30.0 |  -7.0 |   0.0 |  10.0 |  13.1 cm/s | not optimal
 #
-# values from the 2023-11-23, circle is -129
+# values from the 2023-11-23, circle is -129; no drall!
 #   16.0 |   -129.0 |    50.0 |  40.0 |  -6.0 | -0.07 |   0.0 |  17.2 cm/s | ok ish
 #   16.0 |   -129.0 |    50.0 |  50.0 |  -6.0 | -0.07 |   0.0 |  22.0 cm/s | wobbles around the line
 #   16.0 |   -129.0 |    50.0 |  50.0 |  -6.0 |  0.00 |   0.0 |  22.2 cm/s | doesn't wobble around
@@ -84,21 +70,34 @@ speed = 80.0
 #   16.0 |   -129.0 |    50.0 |  90.0 |  -3.0 |  0.00 |  30.0 |  38.4 cm/s |
 #   16.0 |   -129.0 |    50.0 | 100.0 |  -4.0 |  0.00 |  30.0 |  38.5 cm/s |
 #
-# values from same date; circle is -100
+# values from same date; circle is -100; no drall!
 #   16.0 |   -100.0 |    50.0 |  30.0 |  -6.0 |  0.00 |  30.0 |  10.5 cm/s | on the bad circle leaves track a bit
 #   16.0 |   -100.0 |    60.0 |  40.0 |  -6.0 |  0.00 |  30.0 |  15.8 cm/s | driver very safe, tho leaving the track
 #
-# values for same date; circle is -78
+# values for same date; circle is -78; no drall!
 #   16.0 |    -78.0 |    60.0 |  40.0 |  -6.0 | -0.07 |  30.0 |  15.8 cm/s | driver very safe, tho leaving the track
 #
 # wwidth | diameter | lcenter | speed | l k_p | l k_i | l k_d | real speed | comment
 
-[line_pid]
+# The robot speed.
+speed = 80.0
+
+# the distance where if below to try to regulate the distance
+distance_trigger = 40.0
+
+# the distance to stop when on the exit track
+stop_distance = 20.0
+
+# the PID for regulating the driving
+[line]
+center = 50.0
 k_p = -4.0
 k_i = -0.07
 k_d = 30.0
 
-[distance_pid]
+# the PID for regulating the distance
+[distance]
+center = 30.0
 k_p = 10.0
 k_i = 0.0
 k_d = 0.0

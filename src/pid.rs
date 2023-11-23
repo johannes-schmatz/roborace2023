@@ -2,35 +2,25 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub(crate) struct Pid {
-	k_p: f64,
-	k_i: f64,
-	k_d: f64,
+	pub(crate) center: f64,
+	pub(crate) k_p: f64,
+	pub(crate) k_i: f64,
+	pub(crate) k_d: f64,
 
 	#[serde(skip)]
-	last: f64,
+	pub(crate) last_error: f64,
 	#[serde(skip)]
-	integral: f64,
+	pub(crate) integral: f64,
 }
 
 impl Pid {
-	pub(crate) fn new(k_p: f64, k_i: f64, k_d: f64) -> Pid {
-		Pid {
-			k_p, k_i, k_d,
-			last: 0f64,
-			integral: 0f64,
-		}
-	}
-
-	pub(crate) fn set_last(&mut self, last: f64) {
-		self.last = last;
-	}
-
 	pub(crate) fn update(&mut self, input: f64) -> f64 {
-		let last = std::mem::replace(&mut self.last, input);
-		self.integral += input;
+		let error = input - self.center;
+		let last_error = std::mem::replace(&mut self.last_error, error);
+		self.integral += error;
 
-		self.k_p * input
+		self.k_p * error
 			+ self.k_i * self.integral
-			+ self.k_d * (last - input)
+			+ self.k_d * (last_error - error)
 	}
 }

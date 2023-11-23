@@ -16,17 +16,13 @@ pub(crate) struct Program {
 	rotate_arm: bool,
 	rotate_arm_speed: f64, // 0..=100
 
-	line_pid: Pid,
-	line_center: f64,
+	line: Pid,
 	low_ref_warn: f64,
-
-	distance_pid: Pid,
-	distance_center: f64,
-	distance_trigger: f64,
-
-	stop_distance: f64,
-
 	speed: f64,
+
+	distance: Pid,
+	distance_trigger: f64,
+	stop_distance: f64,
 
 	#[serde(skip)]
 	state: RobotState,
@@ -45,17 +41,25 @@ impl Default for Program {
 			rotate_arm: true,
 			rotate_arm_speed: 100.0,
 
-			line_pid: Pid::new(-0.4, 0.0, 0.5),
-			line_center: 50.0,
+			line: Pid {
+				center: 50.0,
+				k_p: -0.4,
+				k_i: 0.0,
+				k_d: 0.5,
+				last_error: 0f64, integral: 0f64,
+			},
 			low_ref_warn: 17.0,
-
-			distance_pid: Pid::new(1.0, 0.0, 0.0),
-			distance_center: 20.0,
-			distance_trigger: 40.0,
-
-			stop_distance: 20.0,
-
 			speed: 50.0,
+
+			distance: Pid {
+				center: 20.0,
+				k_p: 1.0,
+				k_i: 0.0,
+				k_d: 0.0,
+				last_error: 0f64, integral: 0f64,
+			},
+			distance_trigger: 40.0,
+			stop_distance: 20.0,
 
 			state: RobotState::default(),
 			top_motor_reduce_speed: None,
@@ -86,8 +90,9 @@ impl Program {
 				break;
 			}
 
-			let color = bot.color.get_color()?;
-			println!("{:?}", color);
+			let reflection = bot.color.get_color()?;
+			let distance = bot.distance.get_distance()?.unwrap_or(f64::NAN);
+			println!("ref: {reflection:>5.1} -- dst: {distance:>5.1}");
 
 			std::thread::sleep(Duration::from_millis(500));
 		}
@@ -96,11 +101,8 @@ impl Program {
 	}
 
 	fn prepare_drive(&mut self, bot: &Robot) -> Result<()> {
-		let last = bot.color.get_color()? - self.line_center;
-		self.line_pid.set_last(last);
-		println!("set last to {last:?}");
-
-		self.distance_pid.set_last(self.distance_trigger);
+		self.line.last_error = bot.color.get_color()? - self.line.center;
+		self.distance.last_error = 0.0;
 
 		bot.left.start()?;
 		bot.left.set_speed(self.speed)?;
@@ -124,7 +126,7 @@ impl Program {
 					self.state = RobotState::DriveExit;
 					bot.top_arm.stop()?;
 				},
-				RobotState::DriveEntry if distance < self.distance_center => {
+				RobotState::DriveEntry if distance < self.distance.center => {
 					self.state = RobotState::DriveFollow;
 
 					if self.rotate_arm {
@@ -146,15 +148,14 @@ impl Program {
 		let speed_correction = distance
 			.filter(|&x| x < self.distance_trigger && self.state == RobotState::DriveFollow)
 			.map_or(0.0, |x| {
-				self.distance_pid.update(x - self.distance_center) / 100.0
+				self.distance.update(x) / 100.0
 			});
 
 		let reflection = bot.color.get_color()?;
-
-		// 2 * this = delta between left and right
-		let line_correction = self.line_pid.update(reflection - self.line_center) / 1000.0;
+		let line_correction = self.line.update(reflection) / 1000.0;
 
 		let line_after_correction = if self.state == RobotState::DriveFollow {
+			// TODO: we can even consider for the actual competition to not use this feature!
 			self.robot_wheel_width / self.diameter
 		} else {
 			0.0
@@ -169,10 +170,10 @@ impl Program {
 		if self.log {
 			match self.state {
 				RobotState::DriveSimpleOnly => print!("si "),
-				RobotState::DriveEntry =>      print!("in "),
-				RobotState::DriveFollow =>     print!("fo "),
-				RobotState::DriveExit =>       print!("ex "),
-				_ => unreachable!(),
+				RobotState::DriveEntry      => print!("in "),
+				RobotState::DriveFollow     => print!("fo "),
+				RobotState::DriveExit       => print!("ex "),
+				_                           => print!(" ? "),
 			}
 			match distance {
 				Some(distance) => print!("{distance:>5.1} "),
