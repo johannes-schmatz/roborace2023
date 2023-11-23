@@ -4,20 +4,28 @@ rotate_arm = false
 rotate_arm_speed = 25.0
 
 # the wheel width of the robot, actually something about 14.0
-robot_wheel_width = 0 # 16.0 # set to 0 to use no drall!
+# set to 0 to use no drall!
+robot_wheel_width = 16.0
+#robot_wheel_width = 0
 
 # the diameter of the base circle
 # negative means counter clockwise rotation
-#diameter = -129.0
+diameter = -129.0
 #diameter = -78.0
-#diameter = -129.0
-diameter = -100.0
+#diameter = -100.0
 
 line_center = 50.0
 
+# the center to regulate the distance on
 distance_center = 30.0
+
+# the distance where if below to try to regulate the distance
 distance_trigger = 40.0
 
+# the distance to stop when on the exit track
+stop_distance = 20.0
+
+# The robot speed.
 speed = 30.0
 
 # table of values that work:
@@ -60,11 +68,11 @@ speed = 30.0
 #
 
 [line_pid]
-k_p = -8.0
+k_p = -5.0
 k_i = 0.0
 k_d = 0.0
 
 [distance_pid]
-k_p = 0.1
+k_p = 10.0
 k_i = 0.0
 k_d = 0.0

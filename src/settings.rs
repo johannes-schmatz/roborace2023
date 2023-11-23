@@ -1,4 +1,4 @@
-use anyhow::{Context, Result};
+use anyhow::{bail, Context, Result};
 use std::time::{Duration, Instant};
 use serde::{Deserialize, Serialize};
 use crate::menu;
@@ -7,7 +7,7 @@ use crate::robot::Robot;
 use crate::state::RobotState;
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
-pub(crate) struct Settings {
+pub(crate) struct Program {
 	robot_wheel_width: f64,
 	diameter: f64,
 
@@ -21,13 +21,15 @@ pub(crate) struct Settings {
 	distance_center: f64,
 	distance_trigger: f64,
 
+	stop_distance: f64,
+
 	speed: f64,
 
 	#[serde(skip)]
 	state: RobotState,
 }
 
-impl Default for Settings {
+impl Default for Program {
 	fn default() -> Self {
 		Self {
 			robot_wheel_width: 14.0, // obtained by measurement
@@ -43,6 +45,8 @@ impl Default for Settings {
 			distance_center: 20.0,
 			distance_trigger: 40.0,
 
+			stop_distance: 20.0,
+
 			speed: 50.0,
 
 			state: RobotState::default(),
@@ -50,7 +54,7 @@ impl Default for Settings {
 	}
 }
 
-impl Settings {
+impl Program {
 	fn test(&self, bot: &Robot) -> Result<()> {
 		dbg!(&bot.left);
 		dbg!(&bot.right);
@@ -83,6 +87,8 @@ impl Settings {
 		// to "ride" on. We should need to actively accept the values, so they don't end up in the
 		// config file by accident.
 
+		// TODO: why on earth did it not work without starting from the computer?!
+
 		Ok(())
 	}
 
@@ -99,62 +105,73 @@ impl Settings {
 		bot.right.start()?;
 		bot.right.set_speed(self.speed)?;
 
-		if self.rotate_arm {
-			bot.top_arm.start()?;
-
-			// force the arm to start up
-			bot.top_arm.set_speed(50.0)?;
-			std::thread::sleep(Duration::from_millis(100));
-			bot.top_arm.set_speed(self.rotate_arm_speed)?;
-		}
-
 		Ok(())
 	}
 
 	fn drive(&mut self, bot: &Robot) -> Result<()> {
-		self.state = RobotState::Driving;
+		match self.state {
+			RobotState::DriveSimpleOnly => print!("si "),
+			RobotState::DriveEntry => print!("in "),
+			RobotState::DriveFollow => print!("fo "),
+			RobotState::DriveExit => print!("ex "),
+			_ => {},
+		}
 
 		let distance = bot.distance.get_distance()?;
 
 		if let Some(distance) = distance {
 			// when run with 10.0 had a distance of about 8 cm
-			if false && distance < 25.0 { // TODO: disabled for now, as qualification doesn't need it
+			if distance < self.stop_distance && self.state == RobotState::DriveExit {
 				bot.left.stop()?;
 				bot.right.stop()?;
+
+				println!("stopping because dst was: {distance:?}, which is less than {:?}", self.stop_distance);
 
 				return self.next_state(bot, RobotState::Exit);
 			}
 
-			if false && distance < 30.0 && self.state == RobotState::ApproachingWall {
-				self.state = RobotState::Driving;
-				println!("Switched to following wall");
+			if distance < self.distance_center && self.state == RobotState::DriveEntry {
+				self.state = RobotState::DriveFollow;
+
+				if self.rotate_arm {
+					bot.top_arm.start()?;
+
+					// force the arm to start up
+					bot.top_arm.set_speed(50.0)?;
+					//std::thread::sleep(Duration::from_millis(100));
+					//bot.top_arm.set_speed(self.rotate_arm_speed)?;
+				}
+			}
+
+			if distance > self.distance_trigger && self.state == RobotState::DriveFollow {
+				self.state = RobotState::DriveExit;
+				bot.top_arm.stop()?;
 			}
 		}
 
-		// 0.5 ..= 1, default 1
+		// -0.5 ..= 0.5, default 0
 		let speed_correction = if let Some(distance) = distance {
 			// distance from 0 to 255
-			if true || self.state == RobotState::Driving {
+			if self.state == RobotState::DriveFollow {
 				// we are actually following the wall
 
 				if distance < self.distance_trigger {
-					let speed_correction = self.distance_pid.update(distance - self.distance_center);
+					let speed_correction = self.distance_pid.update(distance - self.distance_center) / 100.0;
 
 					print!("{distance:>5.1} => {speed_correction:>5.1} -- ");
 
-					1.0 + speed_correction
-					// + 1 to make it adjust on top of the base speed and not stop the robot
-					// when the error here is getting to 0
+					speed_correction
 				} else {
-					1.0
+					print!("{distance:>5.1} => no trg-- ");
+					0.0
 				}
 			} else {
-				print!("follow wall => -- ");
-				1.0
+				print!("{distance:>5.1} => wr st -- ");
+				0.0
 			}
 		} else {
 			print!("no useful dist -- ");
-			1.0
+			0.0
 		};
 
 		let reflection = bot.color.get_color()?;
@@ -162,22 +179,24 @@ impl Settings {
 		// 2 * this = delta between left and right
 		let line_correction = self.line_pid.update(reflection - self.line_center) / 1000.0;
 
-		let line_after_correction = self.robot_wheel_width / self.diameter;
-		// if self.diameter == 0 then set this to 0!! (allows us to declare no diameter at all
-		// or use Option<f64>
+		let line_after_correction = if self.state == RobotState::DriveFollow {
+			self.robot_wheel_width / self.diameter
+		} else {
+			0.0
+		};
 
-		// TODO: cmd line option for running left/right a tiny bit
+		let l = self.speed * (1.0 + speed_correction) * (1.0 + line_correction + line_after_correction);
+		let r = self.speed * (1.0 + speed_correction) * (1.0 - line_correction - line_after_correction);
 
-		let l = self.speed * speed_correction * (1.0 + line_correction + line_after_correction);
-		let r = self.speed * speed_correction * (1.0 - line_correction - line_after_correction);
-
-		println!("ref: {reflection:>5.1} -> l: {l:>5.1} r: {r:>5.1}");
+		print!("ref: {reflection:>5.1} -> l: {l:>5.1} r: {r:>5.1}");
 
 		if reflection < 17.0 {
 			print!(" low ref!");
 		}
 
-		bot.left .set_speed(l)?;
+		println!();
+
+		bot.left.set_speed(l)?;
 		bot.right.set_speed(r)?;
 
 		Ok(())
@@ -186,7 +205,6 @@ impl Settings {
 	fn end_drive(&self, bot: &Robot) -> Result<()> {
 		bot.left.stop()?;
 		bot.right.stop()?;
-
 		bot.top_arm.stop()?;
 
 		Ok(())
@@ -210,14 +228,17 @@ impl Settings {
 			},
 			RobotState::Test => {
 				self.test(bot)?;
-				self.next_state(bot, RobotState::Exit)?;
+				self.state = RobotState::Exit;
 			},
 
 			RobotState::Measure => {
 				self.measure(bot)?;
-				self.next_state(bot, RobotState::InMenu)?;
+				self.state = RobotState::InMenu;
 			},
-			RobotState::ApproachingWall | RobotState::Driving => {
+			RobotState::DriveSimpleOnly |
+			RobotState::DriveEntry |
+			RobotState::DriveFollow |
+			RobotState::DriveExit => {
 				self.drive(bot)?;
 			},
 		}
@@ -227,7 +248,10 @@ impl Settings {
 
 	fn next_state(&mut self, bot: &Robot, new_state: RobotState) -> Result<()> {
 		match self.state {
-			RobotState::Driving => {
+			RobotState::DriveSimpleOnly |
+			RobotState::DriveEntry |
+			RobotState::DriveFollow |
+			RobotState::DriveExit => {
 				self.end_drive(bot)
 					.context("Failed to end line drive")?;
 			},
@@ -235,7 +259,10 @@ impl Settings {
 		}
 
 		match &new_state {
-			RobotState::ApproachingWall => {
+			RobotState::DriveSimpleOnly |
+			RobotState::DriveEntry |
+			RobotState::DriveFollow |
+			RobotState::DriveExit => {
 				self.prepare_drive(bot)
 					.context("Failed to prepare for line drive")?;
 			},
@@ -248,8 +275,46 @@ impl Settings {
 
 
 	pub(crate) fn main(&mut self, bot: &Robot) -> Result<()> {
-		let initial_state = RobotState::get_initial().context("Failed to parse command line arguments")?;
-		self.next_state(&bot, initial_state)?;
+		let initial_state = if let Some(arg) = std::env::args().skip(1).next() {
+			match arg.as_str() {
+				"help" => {
+					eprintln!("{}", RobotState::HELP_TEXT);
+
+					return Ok(())
+				},
+				"exit" => RobotState::Exit,
+				"menu" => RobotState::InMenu,
+				"test" => RobotState::Test,
+				"measure" => RobotState::Measure,
+				"drive" => RobotState::DriveEntry,
+				"driveS" => RobotState::DriveSimpleOnly,
+				"l" => {
+					bot.left.step(1)?;
+					return Ok(())
+				},
+				"-l" => {
+					bot.left.step(-1)?;
+					return Ok(())
+				},
+				"r" => {
+					bot.right.step(1)?;
+					return Ok(())
+				},
+				"-r" => {
+					bot.right.step(-1)?;
+					return Ok(())
+				},
+				_ => {
+					eprintln!("{}", RobotState::HELP_TEXT);
+
+					bail!("Failed to parse command line arguments: No sub-command {arg:?} known");
+				},
+			}
+		} else {
+			RobotState::InMenu
+		};
+
+		self.next_state(bot, initial_state)?;
 
 		// we do 100 ticks per second
 		let tick_time = Duration::from_millis(10);
@@ -257,7 +322,7 @@ impl Settings {
 		loop {
 			let start = Instant::now();
 
-			if self.tick(&bot).context("Failed to tick robot")? {
+			if self.tick(bot).context("Failed to tick robot")? {
 				break;
 			}
 

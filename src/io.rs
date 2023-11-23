@@ -1,12 +1,12 @@
 use anyhow::{Context, Result};
 use std::path::Path;
-use crate::settings::Settings;
+use crate::settings::Program;
 
 fn path() -> &'static Path {
 	Path::new("./robot_settings.toml")
 }
 
-pub(crate) fn read() -> Result<Settings> {
+pub(crate) fn read() -> Result<Program> {
 	let path = path();
 
 	if path.exists() {
@@ -17,7 +17,7 @@ pub(crate) fn read() -> Result<Settings> {
 	} else {
 		println!("No settings file found, writing new settings file to {path:?}");
 
-		let settings = Settings::default();
+		let settings = Program::default();
 
 		let string = toml::to_string_pretty(&settings)
 			.context("Failed to serialize the settings")?;
@@ -28,7 +28,7 @@ pub(crate) fn read() -> Result<Settings> {
 	}
 }
 
-pub(crate) fn write(settings: Settings) -> Result<()> {
+pub(crate) fn write(settings: Program) -> Result<()> {
 	let path = path();
 
 	let out = toml::to_string_pretty(&settings)

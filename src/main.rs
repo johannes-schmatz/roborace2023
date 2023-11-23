@@ -22,12 +22,11 @@ fn main() -> Result<()> {
     // TODO: consider running via ssh
     // TODO: find a way to sync the robot_settings.toml
 
-
     let bot = Robot::new().context("Failed to create robot")?;
 
-    let mut settings = io::read().context("Failed to read the config file")?;
+    let mut program = io::read().context("Failed to read the config file")?;
 
-    let res = settings.main(&bot);
+    let res = program.main(&bot);
 
     // stop all of the motors
     let _ = bot.left.stop();
@@ -37,7 +36,7 @@ fn main() -> Result<()> {
     res?;
 
     if false {
-        io::write(settings).context("Failed to write the config file")?;
+        io::write(program).context("Failed to write the config file")?;
     }
 
     Ok(())

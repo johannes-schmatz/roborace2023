@@ -65,6 +65,11 @@ impl LargeMotor {
 	pub(crate) fn stop(&self) -> Result<()> {
 		self.inner.stop().with_context(|| anyhow!("Failed to stop motor {}", self.desc))
 	}
+
+	pub(crate) fn step(&self, n: i32) -> Result<()> {
+		self.inner.run_to_rel_pos(Some(10 * n))?;
+		Ok(())
+	}
 }
 
 

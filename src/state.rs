@@ -7,12 +7,16 @@ pub(crate) enum RobotState {
 	InMenu,
 	Test,
 	Measure,
-	Driving,
-	ApproachingWall,
+
+	DriveSimpleOnly, // for testing our PID values without constant sideways drag
+
+	DriveEntry,
+	DriveFollow,
+	DriveExit,
 }
 
 impl RobotState {
-	const HELP_TEXT: &'static str =
+	pub(crate) const HELP_TEXT: &'static str =
 		"Usage:\
 		\n    roborace2023 [<subcommand>]\
 		\n\
@@ -22,6 +26,8 @@ impl RobotState {
 		\n    test            Run the quick and dirty test method\
 		\n    measure         Measure the line. This has no implementation yet and will panic\
 		\n    drive           Start the line driving\
+		\n    driveS          Drive simple only, for testing PID values\
+		\n    l | -l | r | -r Move the corresponding motor a tiny bit\
 		\n\
 		\nIf no subcommand is given, the robot will go into menu mode";
 
@@ -30,31 +36,9 @@ impl RobotState {
 		("menu", RobotState::InMenu),
 		("test", RobotState::Test),
 		("measure", RobotState::Measure),
-		("drive", RobotState::Driving),
+		("drive entry", RobotState::DriveEntry),
+		("drive follow", RobotState::DriveFollow),
+		("drive exit", RobotState::DriveExit),
+		("drive sim", RobotState::DriveSimpleOnly),
 	];
-
-	pub(crate) fn get_initial() -> Result<RobotState> {
-		if let Some(arg) = std::env::args().skip(1).next() {
-			if arg == "help" {
-				eprintln!("{}", RobotState::HELP_TEXT);
-
-				std::process::exit(0)
-			}
-
-			match arg.as_str() {
-				"exit" => Ok(RobotState::Exit),
-				"menu" => Ok(RobotState::InMenu),
-				"test" => Ok(RobotState::Test),
-				"measure" => Ok(RobotState::Measure),
-				"drive" => Ok(RobotState::ApproachingWall),
-				_ => {
-					eprintln!("{}", RobotState::HELP_TEXT);
-
-					bail!("No sub-command {arg:?} known");
-				}
-			}
-		} else {
-			Ok(RobotState::InMenu)
-		}
-	}
 }
