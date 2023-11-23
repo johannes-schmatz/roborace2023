@@ -91,7 +91,6 @@ impl Debug for SmallMotor {
 		f.debug_struct("Motor")
 			.field("desc", &self.desc)
 			.field("position", fmt(&self.inner.get_position()))
-			.field("position", fmt(&self.inner.get_position()))
 			.field("position_sp", fmt(&self.inner.get_position_sp()))
 			.field("speed", fmt(&self.inner.get_speed()))
 			.field("speed_sp", fmt(&self.inner.get_speed_sp()))
@@ -116,8 +115,9 @@ impl SmallMotor {
 		SmallMotor { inner, desc }
 	}
 
-	pub(crate) fn start(&self) -> Result<()> {
-		self.inner.run_direct().with_context(|| anyhow!("Failed to run motor {}", self.desc))
+	pub(crate) fn start_with_full_power(&self) -> Result<()> {
+		self.inner.run_direct().with_context(|| anyhow!("Failed to run motor {}", self.desc))?;
+		self.inner.set_duty_cycle_sp(100).with_context(|| anyhow!("Failed to set speed 100 for {}", self.desc))
 	}
 
 	pub(crate) fn set_speed(&self, speed: f64) -> Result<()> {

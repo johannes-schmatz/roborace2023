@@ -31,7 +31,7 @@ pub(crate) struct Program {
 	#[serde(skip)]
 	state: RobotState,
 	#[serde(skip)]
-	top_motor_started: Option<usize>,
+	top_motor_reduce_speed: Option<usize>,
 }
 
 impl Default for Program {
@@ -58,7 +58,7 @@ impl Default for Program {
 			speed: 50.0,
 
 			state: RobotState::default(),
-			top_motor_started: None,
+			top_motor_reduce_speed: None,
 		}
 	}
 }
@@ -68,7 +68,8 @@ impl Program {
 		dbg!(&bot.left);
 		dbg!(&bot.right);
 
-		bot.top_arm.start()?;
+		bot.top_arm.start_with_full_power()?;
+		std::thread::sleep(Duration::from_millis(100));
 		bot.top_arm.set_speed(self.rotate_arm_speed)?;
 
 		std::thread::sleep(Duration::from_secs(4));
@@ -132,29 +133,30 @@ impl Program {
 
 				return self.next_state(bot, RobotState::Exit);
 			}
+		}
 
+		if let Some(distance) = distance {
 			if distance > self.distance_trigger && self.state == RobotState::DriveFollow {
 				self.state = RobotState::DriveExit;
 				bot.top_arm.stop()?;
 			}
+		}
 
+		if let Some(distance) = distance {
 			if distance < self.distance_center && self.state == RobotState::DriveEntry {
 				self.state = RobotState::DriveFollow;
 
 				if self.rotate_arm {
-					bot.top_arm.start()?;
-
-					// force the arm to start up
-					bot.top_arm.set_speed(50.0)?;
-					self.top_motor_started = Some(tick_counter);
+					bot.top_arm.start_with_full_power()?;
+					// in 100ms turn it off
+					self.top_motor_reduce_speed = Some(tick_counter + 10); // 10 = 100ms
 				}
 			}
 		}
-
 		// use this to offset the top motor speed setting
-		if self.top_motor_started.is_some_and(|x| x + 10 < tick_counter) { // 10 = 100ms
+		if self.top_motor_reduce_speed.is_some_and(|x| x < tick_counter) {
+			self.top_motor_reduce_speed = None;
 			bot.top_arm.set_speed(self.rotate_arm_speed)?;
-			self.top_motor_started = None;
 		}
 
 		// -0.5 ..= 0.5, default 0
