@@ -86,13 +86,6 @@ impl Program {
 			std::thread::sleep(Duration::from_millis(500));
 		}
 
-		//TODO: We want to drive over the line to figure out if min/max value are actually fine
-		// and not only print them (all of the values), but also use them to find the perfect middle
-		// to "ride" on. We should need to actively accept the values, so they don't end up in the
-		// config file by accident.
-
-		// TODO: why on earth did it not work without starting from the computer?!
-
 		Ok(())
 	}
 

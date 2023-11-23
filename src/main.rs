@@ -1,14 +1,13 @@
 mod robot;
 mod menu;
 mod pid;
-mod settings;
+mod program;
 mod io;
 mod state;
 
 use anyhow::{Context, Result};
 
 use crate::robot::Robot;
-
 
 fn main() -> Result<()> {
     std::env::set_var("RUST_BACKTRACE", "full");

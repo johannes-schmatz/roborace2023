@@ -1,6 +1,6 @@
 use anyhow::{Context, Result};
 use std::path::Path;
-use crate::settings::Program;
+use crate::program::Program;
 
 fn path() -> &'static Path {
 	Path::new("./robot_settings.toml")
