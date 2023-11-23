@@ -1,5 +1,3 @@
-use anyhow::{bail, Result};
-
 #[derive(Debug, Clone, Default, PartialEq)]
 pub(crate) enum RobotState {
 	Exit,
