@@ -133,6 +133,11 @@ impl Program {
 				return self.next_state(bot, RobotState::Exit);
 			}
 
+			if distance > self.distance_trigger && self.state == RobotState::DriveFollow {
+				self.state = RobotState::DriveExit;
+				bot.top_arm.stop()?;
+			}
+
 			if distance < self.distance_center && self.state == RobotState::DriveEntry {
 				self.state = RobotState::DriveFollow;
 
@@ -143,11 +148,6 @@ impl Program {
 					bot.top_arm.set_speed(50.0)?;
 					self.top_motor_started = Some(tick_counter);
 				}
-			}
-
-			if distance > self.distance_trigger && self.state == RobotState::DriveFollow {
-				self.state = RobotState::DriveExit;
-				bot.top_arm.stop()?;
 			}
 		}
 
