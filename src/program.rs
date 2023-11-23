@@ -112,45 +112,28 @@ impl Program {
 	}
 
 	fn drive(&mut self, bot: &Robot, tick_counter: usize) -> Result<()> {
-		if self.log {
-			match self.state {
-				RobotState::DriveSimpleOnly => print!("si "),
-				RobotState::DriveEntry => print!("in "),
-				RobotState::DriveFollow => print!("fo "),
-				RobotState::DriveExit => print!("ex "),
-				_ => {},
-			}
-		}
-
 		let distance = bot.distance.get_distance()?;
 
 		if let Some(distance) = distance {
-			if distance < self.stop_distance && self.state == RobotState::DriveExit {
-				bot.left.stop()?;
-				bot.right.stop()?;
+			match self.state {
+				RobotState::DriveExit if distance < self.stop_distance => {
+					self.state = RobotState::Exit;
+					println!("stopping because dst was: {distance:?}, which is less than {:?}", self.stop_distance);
+				},
+				RobotState::DriveFollow if distance > self.distance_trigger => {
+					self.state = RobotState::DriveExit;
+					bot.top_arm.stop()?;
+				},
+				RobotState::DriveEntry if distance < self.distance_center => {
+					self.state = RobotState::DriveFollow;
 
-				println!("stopping because dst was: {distance:?}, which is less than {:?}", self.stop_distance);
-
-				return self.next_state(bot, RobotState::Exit);
-			}
-		}
-
-		if let Some(distance) = distance {
-			if distance > self.distance_trigger && self.state == RobotState::DriveFollow {
-				self.state = RobotState::DriveExit;
-				bot.top_arm.stop()?;
-			}
-		}
-
-		if let Some(distance) = distance {
-			if distance < self.distance_center && self.state == RobotState::DriveEntry {
-				self.state = RobotState::DriveFollow;
-
-				if self.rotate_arm {
-					bot.top_arm.start_with_full_power()?;
-					// in 100ms turn it off
-					self.top_motor_reduce_speed = Some(tick_counter + 10); // 10 = 100ms
-				}
+					if self.rotate_arm {
+						bot.top_arm.start_with_full_power()?;
+						// in 100ms turn it off
+						self.top_motor_reduce_speed = Some(tick_counter + 10); // 10 = 100ms
+					}
+				},
+				_ => {},
 			}
 		}
 		// use this to offset the top motor speed setting
@@ -160,36 +143,11 @@ impl Program {
 		}
 
 		// -0.5 ..= 0.5, default 0
-		let speed_correction = if let Some(distance) = distance {
-			if self.state == RobotState::DriveFollow {
-				// we are actually following the wall
-
-				if distance < self.distance_trigger {
-					let speed_correction = self.distance_pid.update(distance - self.distance_center) / 100.0;
-
-					if self.log {
-						print!("{distance:>5.1} => {speed_correction:>5.1} -- ");
-					}
-
-					speed_correction
-				} else {
-					if self.log {
-						print!("{distance:>5.1} =>no trig-- ");
-					}
-					0.0
-				}
-			} else {
-				if self.log {
-					print!("{distance:>5.1} =>wrong st- ");
-				}
-				0.0
-			}
-		} else {
-			if self.log {
-				print!("no useful dist -- ");
-			}
-			0.0
-		};
+		let speed_correction = distance
+			.filter(|&x| x < self.distance_trigger && self.state == RobotState::DriveFollow)
+			.map_or(0.0, |x| {
+				self.distance_pid.update(x - self.distance_center) / 100.0
+			});
 
 		let reflection = bot.color.get_color()?;
 
@@ -205,26 +163,32 @@ impl Program {
 		let l = self.speed * (1.0 + speed_correction) * (1.0 + line_correction + line_after_correction);
 		let r = self.speed * (1.0 + speed_correction) * (1.0 - line_correction - line_after_correction);
 
-		if self.log {
-			print!("ref: {reflection:>5.1} -> l: {l:>5.1} r: {r:>5.1}");
-
-			if reflection < self.low_ref_warn {
-				print!(" low ref!");
-			}
-
-			println!();
-		}
-
 		bot.left.set_speed(l)?;
 		bot.right.set_speed(r)?;
 
-		Ok(())
-	}
-
-	fn end_drive(&self, bot: &Robot) -> Result<()> {
-		bot.left.stop()?;
-		bot.right.stop()?;
-		bot.top_arm.stop()?;
+		if self.log {
+			match self.state {
+				RobotState::DriveSimpleOnly => print!("si "),
+				RobotState::DriveEntry =>      print!("in "),
+				RobotState::DriveFollow =>     print!("fo "),
+				RobotState::DriveExit =>       print!("ex "),
+				_ => unreachable!(),
+			}
+			match distance {
+				Some(distance) => print!("{distance:>5.1} "),
+				None => print!("no dst"),
+			};
+			if distance.is_some_and(|x| x < self.distance_trigger) {
+				print!(" => trigger  -- ");
+			} else {
+				print!(" =>          -- ");
+			}
+			print!(" {speed_correction:>5.1} -- ref: {reflection:>5.1} -> l: {l:>5.1} r: {r:>5.1}");
+			if reflection < self.low_ref_warn {
+				print!(" low ref!");
+			}
+			println!();
+		}
 
 		Ok(())
 	}
@@ -271,8 +235,9 @@ impl Program {
 			RobotState::DriveEntry |
 			RobotState::DriveFollow |
 			RobotState::DriveExit => {
-				self.end_drive(bot)
-					.context("Failed to end line drive")?;
+				bot.left.stop().context("Failed to end line drive")?;
+				bot.right.stop().context("Failed to end line drive")?;
+				bot.top_arm.stop().context("Failed to end line drive")?;
 			},
 			_ => {},
 		}
