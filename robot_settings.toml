@@ -10,8 +10,8 @@ robot_wheel_width = 16.0
 
 # the diameter of the base circle
 # negative means counter clockwise rotation
-diameter = -129.0
-#diameter = -78.0
+#diameter = -129.0
+diameter = -78.0
 #diameter = -100.0
 
 line_center = 50.0
@@ -26,7 +26,7 @@ distance_trigger = 40.0
 stop_distance = 20.0
 
 # The robot speed.
-speed = 30.0
+speed = 80.0
 
 # table of values that work:
 #
@@ -66,11 +66,31 @@ speed = 30.0
 #   16.0 |   -129.0 |    50.0 |  50.0 |  -7.0 |   0.0 |  10.0 |
 #   16.0 |   -129.0 |    50.0 |  30.0 |  -7.0 |   0.0 |  10.0 |  13.1 cm/s | not optimal
 #
+# values from the 2023-11-23, circle is -129
+#   16.0 |   -129.0 |    50.0 |  40.0 |  -6.0 | -0.07 |   0.0 |  17.2 cm/s | ok ish
+#   16.0 |   -129.0 |    50.0 |  50.0 |  -6.0 | -0.07 |   0.0 |  22.0 cm/s | wobbles around the line
+#   16.0 |   -129.0 |    50.0 |  50.0 |  -6.0 |  0.00 |   0.0 |  22.2 cm/s | doesn't wobble around
+#   16.0 |   -129.0 |    50.0 |  60.0 |  -6.0 |  0.00 |   0.0 |  27.5 cm/s | slowly moves to the lines, and fast away
+#   16.0 |   -129.0 |    50.0 |  60.0 |  -6.0 |  0.00 |  20.0 |  27.5 cm/s |
+#   16.0 |   -129.0 |    50.0 |  70.0 |  -6.0 |  0.00 |  20.0 |  32.4 cm/s | wobbles, but not very much
+#   16.0 |   -129.0 |    50.0 |  70.0 |  -4.0 |  0.00 |  30.0 |  30.6 cm/s |
+#   16.0 |   -129.0 |    50.0 |  80.0 |  -3.0 |  0.00 |  30.0 |  34.9 cm/s |
+#   16.0 |   -129.0 |    50.0 |  90.0 |  -3.0 |  0.00 |  30.0 |  38.4 cm/s |
+#   16.0 |   -129.0 |    50.0 | 100.0 |  -4.0 |  0.00 |  30.0 |  38.5 cm/s |
+#
+# values from same date; circle is -100
+#   16.0 |   -100.0 |    50.0 |  30.0 |  -6.0 |  0.00 |  30.0 |  10.5 cm/s | on the bad circle leaves track a bit
+#   16.0 |   -100.0 |    60.0 |  40.0 |  -6.0 |  0.00 |  30.0 |  15.8 cm/s | driver very safe, tho leaving the track
+#
+# values for same date; circle is -78
+#   16.0 |    -78.0 |    60.0 |  40.0 |  -6.0 | -0.07 |  30.0 |  15.8 cm/s | driver very safe, tho leaving the track
+#
+# wwidth | diameter | lcenter | speed | l k_p | l k_i | l k_d | real speed | comment
 
 [line_pid]
-k_p = -5.0
-k_i = 0.0
-k_d = 0.0
+k_p = -4.0
+k_i = -0.07
+k_d = 30.0
 
 [distance_pid]
 k_p = 10.0
