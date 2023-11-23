@@ -18,6 +18,7 @@ pub(crate) struct Program {
 
 	line_pid: Pid,
 	line_center: f64,
+	low_ref_warn: f64,
 
 	distance_pid: Pid,
 	distance_center: f64,
@@ -36,7 +37,7 @@ impl Default for Program {
 		Self {
 			log: true,
 
-			robot_wheel_width: 14.0, // obtained by measurement
+			robot_wheel_width: 14.0,
 			diameter: 100.0,
 
 			rotate_arm: true,
@@ -44,6 +45,7 @@ impl Default for Program {
 
 			line_pid: Pid::new(-0.4, 0.0, 0.5),
 			line_center: 50.0,
+			low_ref_warn: 17.0,
 
 			distance_pid: Pid::new(1.0, 0.0, 0.0),
 			distance_center: 20.0,
@@ -119,7 +121,6 @@ impl Program {
 		let distance = bot.distance.get_distance()?;
 
 		if let Some(distance) = distance {
-			// when run with 10.0 had a distance of about 8 cm
 			if distance < self.stop_distance && self.state == RobotState::DriveExit {
 				bot.left.stop()?;
 				bot.right.stop()?;
@@ -197,7 +198,7 @@ impl Program {
 		if self.log {
 			print!("ref: {reflection:>5.1} -> l: {l:>5.1} r: {r:>5.1}");
 
-			if reflection < 17.0 {
+			if reflection < self.low_ref_warn {
 				print!(" low ref!");
 			}
 

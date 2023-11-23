@@ -25,6 +25,9 @@ distance_center = 30.0
 # the distance where if below to try to regulate the distance
 distance_trigger = 40.0
 
+# when to warn for low reflection
+low_ref_warn = 17.0
+
 # the distance to stop when on the exit track
 stop_distance = 20.0
 
