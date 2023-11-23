@@ -28,6 +28,7 @@ impl RobotState {
 		\n    drive           Start the line driving\
 		\n    driveS          Drive simple only, for testing PID values\
 		\n    l|r DEGREE      Move the corresponding motor a tiny bit, depending on DEGREE\
+		\n    print           Print the robot struct out, for debugging.\
 		\n\
 		\nIf no subcommand is given, the robot will go into menu mode";
 

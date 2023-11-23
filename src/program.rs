@@ -310,6 +310,11 @@ impl Program {
 
 					return bot.right.step(amount);
 				},
+				"print" => {
+					println!("{bot:#?}");
+
+					return Ok(());
+				},
 				_ => {
 					eprintln!("{}", RobotState::HELP_TEXT);
 
