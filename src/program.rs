@@ -150,7 +150,6 @@ impl Program {
 
 		// -0.5 ..= 0.5, default 0
 		let speed_correction = if let Some(distance) = distance {
-			// distance from 0 to 255
 			if self.state == RobotState::DriveFollow {
 				// we are actually following the wall
 
@@ -164,13 +163,13 @@ impl Program {
 					speed_correction
 				} else {
 					if self.log {
-						print!("{distance:>5.1} => no trg-- ");
+						print!("{distance:>5.1} =>no trig-- ");
 					}
 					0.0
 				}
 			} else {
 				if self.log {
-					print!("{distance:>5.1} => wr st -- ");
+					print!("{distance:>5.1} =>wrong st- ");
 				}
 				0.0
 			}
@@ -298,20 +297,18 @@ impl Program {
 				"drive" => RobotState::DriveEntry,
 				"driveS" => RobotState::DriveSimpleOnly,
 				"l" => {
-					bot.left.step(1)?;
-					return Ok(())
-				},
-				"-l" => {
-					bot.left.step(-1)?;
-					return Ok(())
+					let amount = std::env::args().skip(2)
+						.next().map(|x| x.parse::<f64>()).context("You're missing an argument")?
+						.context("Your second argument needs to be a floating point number")?;
+
+					return bot.left.step(amount);
 				},
 				"r" => {
-					bot.right.step(1)?;
-					return Ok(())
-				},
-				"-r" => {
-					bot.right.step(-1)?;
-					return Ok(())
+					let amount = std::env::args().skip(2)
+						.next().map(|x| x.parse::<f64>()).context("You're missing an argument")?
+						.context("Your second argument needs to be a floating point number")?;
+
+					return bot.right.step(amount);
 				},
 				_ => {
 					eprintln!("{}", RobotState::HELP_TEXT);

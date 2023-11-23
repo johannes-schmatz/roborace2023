@@ -22,7 +22,6 @@ impl Debug for LargeMotor {
 		f.debug_struct("Motor")
 			.field("desc", &self.desc)
 			.field("position", fmt(&self.inner.get_position()))
-			.field("position", fmt(&self.inner.get_position()))
 			.field("position_sp", fmt(&self.inner.get_position_sp()))
 			.field("speed", fmt(&self.inner.get_speed()))
 			.field("speed_sp", fmt(&self.inner.get_speed_sp()))
@@ -66,8 +65,13 @@ impl LargeMotor {
 		self.inner.stop().with_context(|| anyhow!("Failed to stop motor {}", self.desc))
 	}
 
-	pub(crate) fn step(&self, n: i32) -> Result<()> {
-		self.inner.run_to_rel_pos(Some(10 * n))?;
+	pub(crate) fn step(&self, rotations: f64) -> Result<()> {
+		let count_per_rot = self.inner.get_count_per_rot()?;
+
+		let delta_pos = count_per_rot * rotations;
+
+		self.inner.run_to_rel_pos(Some(delta_pos))?;
+
 		Ok(())
 	}
 }
