@@ -1,5 +1,8 @@
 # This file belongs on the robot
 
+# To log to the console or to not log to the console
+log = true
+
 rotate_arm = false
 rotate_arm_speed = 25.0
 

@@ -8,6 +8,8 @@ use crate::state::RobotState;
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub(crate) struct Program {
+	log: bool,
+
 	robot_wheel_width: f64,
 	diameter: f64,
 
@@ -32,6 +34,8 @@ pub(crate) struct Program {
 impl Default for Program {
 	fn default() -> Self {
 		Self {
+			log: true,
+
 			robot_wheel_width: 14.0, // obtained by measurement
 			diameter: 100.0,
 
@@ -109,12 +113,14 @@ impl Program {
 	}
 
 	fn drive(&mut self, bot: &Robot) -> Result<()> {
-		match self.state {
-			RobotState::DriveSimpleOnly => print!("si "),
-			RobotState::DriveEntry => print!("in "),
-			RobotState::DriveFollow => print!("fo "),
-			RobotState::DriveExit => print!("ex "),
-			_ => {},
+		if self.log {
+			match self.state {
+				RobotState::DriveSimpleOnly => print!("si "),
+				RobotState::DriveEntry => print!("in "),
+				RobotState::DriveFollow => print!("fo "),
+				RobotState::DriveExit => print!("ex "),
+				_ => {},
+			}
 		}
 
 		let distance = bot.distance.get_distance()?;
@@ -158,19 +164,27 @@ impl Program {
 				if distance < self.distance_trigger {
 					let speed_correction = self.distance_pid.update(distance - self.distance_center) / 100.0;
 
-					print!("{distance:>5.1} => {speed_correction:>5.1} -- ");
+					if self.log {
+						print!("{distance:>5.1} => {speed_correction:>5.1} -- ");
+					}
 
 					speed_correction
 				} else {
-					print!("{distance:>5.1} => no trg-- ");
+					if self.log {
+						print!("{distance:>5.1} => no trg-- ");
+					}
 					0.0
 				}
 			} else {
-				print!("{distance:>5.1} => wr st -- ");
+				if self.log {
+					print!("{distance:>5.1} => wr st -- ");
+				}
 				0.0
 			}
 		} else {
-			print!("no useful dist -- ");
+			if self.log {
+				print!("no useful dist -- ");
+			}
 			0.0
 		};
 
@@ -188,13 +202,15 @@ impl Program {
 		let l = self.speed * (1.0 + speed_correction) * (1.0 + line_correction + line_after_correction);
 		let r = self.speed * (1.0 + speed_correction) * (1.0 - line_correction - line_after_correction);
 
-		print!("ref: {reflection:>5.1} -> l: {l:>5.1} r: {r:>5.1}");
+		if self.log {
+			print!("ref: {reflection:>5.1} -> l: {l:>5.1} r: {r:>5.1}");
 
-		if reflection < 17.0 {
-			print!(" low ref!");
+			if reflection < 17.0 {
+				print!(" low ref!");
+			}
+
+			println!();
 		}
-
-		println!();
 
 		bot.left.set_speed(l)?;
 		bot.right.set_speed(r)?;
@@ -328,7 +344,7 @@ impl Program {
 
 			let end = start.elapsed();
 
-			if n == 0 {
+			if n == 0 && self.log {
 				println!("tick took: {:?}", end);
 			}
 			n += 1;
