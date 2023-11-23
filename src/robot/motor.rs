@@ -66,11 +66,11 @@ impl LargeMotor {
 	}
 
 	pub(crate) fn step(&self, rotations: f64) -> Result<()> {
-		let count_per_rot = self.inner.get_count_per_rot()?;
+		let count_per_rot = self.inner.get_count_per_rot()? as f64;
 
 		let delta_pos = count_per_rot * rotations;
 
-		self.inner.run_to_rel_pos(Some(delta_pos))?;
+		self.inner.run_to_rel_pos(Some(delta_pos as i32))?;
 
 		Ok(())
 	}
