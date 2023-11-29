@@ -120,14 +120,17 @@ impl Program {
 			match self.state {
 				RobotState::DriveExit if distance < self.stop_distance => {
 					self.state = RobotState::Exit;
+					ev3dev_lang_rust::sound::beep()?;
 					println!("stopping because dst was: {distance:?}, which is less than {:?}", self.stop_distance);
 				},
 				RobotState::DriveFollow if distance > self.distance_trigger => {
 					self.state = RobotState::DriveExit;
+					ev3dev_lang_rust::sound::beep()?;
 					bot.top_arm.stop()?;
 				},
 				RobotState::DriveEntry if distance < self.distance.center => {
 					self.state = RobotState::DriveFollow;
+					ev3dev_lang_rust::sound::beep()?;
 
 					if self.rotate_arm {
 						bot.top_arm.start_with_full_power()?;
