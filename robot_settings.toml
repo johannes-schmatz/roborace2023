@@ -10,8 +10,9 @@ rotate_arm = false
 rotate_arm_speed = 25.0
 
 # the wheel width of the robot, actually something about 14.0
-# set to 0 to use no drall!
 #robot_wheel_width = 16.0
+# We set this value to zero to remove any constant left or right turn.
+# Also known as no "Drall".
 robot_wheel_width = 0
 
 # the diameter of the base circle

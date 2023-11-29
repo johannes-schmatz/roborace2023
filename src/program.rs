@@ -158,12 +158,24 @@ impl Program {
 		let line_correction = self.line.update(reflection) / 1000.0;
 
 		let line_after_correction = if self.state == RobotState::DriveFollow {
-			// TODO: we can even consider for the actual competition to not use this feature!
+			// In the actual competition we set `self.robot_wheel_width` to `0.0`,
+			// as that makes the `line_after_correction` (other people call it "Drall"),
+			// which removes constant left or right turn.
+			// This was originally created for the qualification, to ease driving one circle
+			// without any in or out.
 			self.robot_wheel_width / self.diameter
 		} else {
 			0.0
 		};
 
+		// PROBLEM:
+		// We attempt to set the right motor speed to a value larger than the maximum speed of
+		// the motor, if `self.speed` is `100` (we use percents).
+		// FIX:
+		// For the future we learn that we need to use `self.speed` for the faster wheel,
+		// and use twice the offset for the other one. This ensures that the maximum speed of
+		// the faster wheel is `self.speed` and nothing above it, as that's impossible when
+		// `self.speed` is the maximum speed possible for the wheel.
 		let l = self.speed * (1.0 + speed_correction) * (1.0 + line_correction + line_after_correction);
 		let r = self.speed * (1.0 + speed_correction) * (1.0 - line_correction - line_after_correction);
 
