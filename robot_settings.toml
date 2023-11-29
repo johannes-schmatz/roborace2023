@@ -11,8 +11,8 @@ rotate_arm_speed = 25.0
 
 # the wheel width of the robot, actually something about 14.0
 # set to 0 to use no drall!
-robot_wheel_width = 16.0
-#robot_wheel_width = 0
+#robot_wheel_width = 16.0
+robot_wheel_width = 0
 
 # the diameter of the base circle
 # negative means counter clockwise rotation
@@ -80,6 +80,12 @@ diameter = -78.0
 # 2023-11-23 no drall!
 #   16.0 |   -100.0 |    50.0 |  30.0 |  -6.0 |  0.00 |  30.0 |  10.5 cm/s | on the bad circle leaves track a bit
 #   16.0 |   -100.0 |    60.0 |  40.0 |  -6.0 |  0.00 |  30.0 |  15.8 cm/s | driver very safe, tho leaving the track
+# 2023-11-29 no drall!
+#   16.0 |   -100.0 |    60.0 |  40.0 |  -4.0 | -0.07 |  40.0 |  16.5 cm/s |
+#   16.0 |   -100.0 |    60.0 |  50.0 |  -4.0 | -0.07 |  40.0 |  21.8 cm/s |
+#   16.0 |   -100.0 |    60.0 |  60.0 |  -4.0 | -0.07 |  40.0 |  27.5 cm/s |
+#   16.0 |   -100.0 |    60.0 |  70.0 |  -4.0 | -0.07 |  40.0 |  32.4 cm/s |
+#    you can't drive with v = 80 because of right motor turning too fast again!
 #
 # 2023-11-23 no drall!
 #   16.0 |    -78.0 |    60.0 |  40.0 |  -6.0 | -0.07 |  30.0 |  15.8 cm/s | driver very safe, tho leaving the track
@@ -100,7 +106,7 @@ diameter = -78.0
 # wwidth | diameter | lcenter | speed | l k_p | l k_i | l k_d | real speed | comment
 
 # The robot speed.
-speed = 90.0
+speed = 60.0
 
 # the distance where if below to try to regulate the distance
 distance_trigger = 50.0
