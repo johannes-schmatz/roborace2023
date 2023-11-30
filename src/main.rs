@@ -30,12 +30,11 @@ fn main() -> Result<()> {
     let mut program = io::read().context("Failed to read the config file")?;
 
     let res = program.main(&bot);
-
-    // stop all of the motors
+    // Before looking at the result, we stop all the motors.
+    // This ensures that when the program exits (besides panic), we stop the motors.
     let _ = bot.left.stop();
     let _ = bot.right.stop();
     let _ = bot.top_arm.stop();
-
     res?;
 
     Ok(())

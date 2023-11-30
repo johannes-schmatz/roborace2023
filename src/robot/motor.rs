@@ -51,14 +51,8 @@ impl LargeMotor {
 	}
 
 	pub(crate) fn set_speed(&self, speed: f64) -> Result<()> {
-		let mut speed = speed as i32;
-		if speed > 100 {
-			speed = 100;
-		}
-		if speed < -100 {
-			speed = -100;
-		}
-		self.inner.set_duty_cycle_sp(speed).with_context(|| anyhow!("Failed to set speed {speed} for {}", self.desc))
+		let velocity = (speed as i32).clamp(-100, 100);
+		self.inner.set_duty_cycle_sp(velocity).with_context(|| anyhow!("Failed to set speed {velocity} (from {speed}) for {}", self.desc))
 	}
 
 	pub(crate) fn stop(&self) -> Result<()> {
@@ -75,10 +69,6 @@ impl LargeMotor {
 		Ok(())
 	}
 }
-
-
-
-
 
 #[derive(Clone)]
 pub(crate) struct SmallMotor {

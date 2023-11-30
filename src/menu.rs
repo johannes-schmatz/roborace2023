@@ -13,7 +13,7 @@ pub(crate) fn select(bot: &Robot) -> Result<Option<RobotState>> {
 	let mut cursor = 0;
 
 	loop {
-		println!("selected: {:?}", items.get(cursor).map(|x| x.0));
+		println!("selected: {:?}", items.get(cursor).map(|x| x.0).unwrap_or(""));
 
 		cursor = match bot.buttons.await_press() {
 			Button::Enter => {
