@@ -1,130 +1,149 @@
-# This file belongs on the robot
+# This file belongs on the robot.
 
-# To log to the console or to not log to the console
+# To log or to not log to stdout.
 log = true
 
-# when to warn for low reflection
+# The first value to warn about a low reflection at in the log.
 low_ref_warn = 17.0
 
+# If this is true, rotate the top arm.
 rotate_arm = false
+# This controls the speed of rotation in percent of the maximum speed of the small
+# motor. For starting up, the program sets the speed for 100ms (10 ticks) to 100%
+# of the value.
 rotate_arm_speed = 25.0
 
-# the wheel width of the robot, actually something about 14.0
-#robot_wheel_width = 16.0
+# The wheel width of the robot in centimeters.
+# Measurements on the actual robot gave something about 14.0cm.
 # We set this value to zero to remove any constant left or right turn.
-# Also known as no "Drall".
+# Together with the diamter this controlls the spin of the robot.
+#robot_wheel_width = 16.0
 robot_wheel_width = 0
 
-# the diameter of the base circle
-# negative means counter clockwise rotation
+# The diameter of the base circle in centimeters.
+# A positive value means clockwise rotation, a negative one counter clockwise rotation.
 diameter = -78.0
 #diameter = -100.0
 #diameter = -129.0
 
-# table of values that work:
+# We have 3 test tracks:
+# - The small one with a diameter of about 78cm.
+# - The medium one, I drew that one, with a diameter of somewhere between 93cm and 98cm.
+#   We glued a printed one with a diameter of about 100cm on it.
+# - The largest printed one with a diameter of somewhere between 128cm and 130cm
+# The task states that the circle has a diameter between 80cm and 140cm.
+
+# Table of values that work:
 #
-# wwidth | diameter | lcenter | speed | l k_p | l k_i | l k_d | real speed | comment
+# spin | width | diameter | lcenter | speed | l k_p | l k_i | l k_d | real speed | comment
+# bool |  +f64 |    +-f64 |    +f64 |  +f64 | +-f64 | +-f64 | +-f64 |  +f64 cm/s | str
 #
-# real radius: 78 (drall)
-#   16.0 |    -78.0 |    50.0 |  20.0 |  -2.0 |   0.0 |   0.0 |   6.1 cm/s |
-#   16.0 |    -78.0 |    50.0 |  30.0 |  -2.0 |   0.0 |   0.0 |  11.8 cm/s |
-#   16.0 |    -78.0 |    50.0 |  40.0 |  -2.0 |   0.0 |   0.0 |  17.1 cm/s |
-#   16.0 |    -78.0 |    50.0 |  50.0 |  -2.0 |   0.0 |   0.0 |  22.5 cm/s |
-#   16.0 |    -78.0 |    50.0 |  60.0 |  -2.0 |   0.0 |   0.0 |  27.4 cm/s |
-#   16.0 |    -78.0 |    50.0 |  70.0 |  -2.0 |   0.0 |   0.0 |  33.2 cm/s |
-#   16.0 |    -78.0 |    50.0 |  80.0 |  -2.0 |   0.0 |   0.0 |    .  cm/s | breaks!
+# y    |  16.0 |    -78.0 |    50.0 |  20.0 |  -2.0 |   0.0 |   0.0 |   6.1 cm/s |
+# y    |  16.0 |    -78.0 |    50.0 |  30.0 |  -2.0 |   0.0 |   0.0 |  11.8 cm/s |
+# y    |  16.0 |    -78.0 |    50.0 |  40.0 |  -2.0 |   0.0 |   0.0 |  17.1 cm/s |
+# y    |  16.0 |    -78.0 |    50.0 |  50.0 |  -2.0 |   0.0 |   0.0 |  22.5 cm/s |
+# y    |  16.0 |    -78.0 |    50.0 |  60.0 |  -2.0 |   0.0 |   0.0 |  27.4 cm/s |
+# y    |  16.0 |    -78.0 |    50.0 |  70.0 |  -2.0 |   0.0 |   0.0 |  33.2 cm/s |
+# y    |  16.0 |    -78.0 |    50.0 |  80.0 |  -2.0 |   0.0 |   0.0 |    .  cm/s | breaks!
 #
-# real radius: 93 and 98 (the one I drew), (drall)
-#   16.0 |    -95.0 |    50.0 |  30.0 |  -2.0 |   0.0 |   0.0 |  10.9 cm/s |
-#   16.0 |    -95.0 |    50.0 |  40.0 |  -2.0 |   0.0 |   0.0 |  16.0 cm/s |
-#   16.0 |    -95.0 |    50.0 |  50.0 |  -2.0 |   0.0 |   0.0 |  20.9 cm/s |
-#   16.0 |    -95.0 |    50.0 |  60.0 |  -2.0 |   0.0 |   0.0 |  25.7 cm/s |
-#   16.0 |    -95.0 |    50.0 |  70.0 |  -2.0 |   0.0 |   0.0 |  30.7 cm/s | not as optimal, leaves track
-#   16.0 |    -95.0 |    50.0 |  80.0 |  -2.0 |   0.0 |   0.0 |    .  cm/s | doesn't work
+# y    |  16.0 |    -95.0 |    50.0 |  30.0 |  -2.0 |   0.0 |   0.0 |  10.9 cm/s |
+# y    |  16.0 |    -95.0 |    50.0 |  40.0 |  -2.0 |   0.0 |   0.0 |  16.0 cm/s |
+# y    |  16.0 |    -95.0 |    50.0 |  50.0 |  -2.0 |   0.0 |   0.0 |  20.9 cm/s |
+# y    |  16.0 |    -95.0 |    50.0 |  60.0 |  -2.0 |   0.0 |   0.0 |  25.7 cm/s |
+# y    |  16.0 |    -95.0 |    50.0 |  70.0 |  -2.0 |   0.0 |   0.0 |  30.7 cm/s | not as optimal, leaves track
+# y    |  16.0 |    -95.0 |    50.0 |  80.0 |  -2.0 |   0.0 |   0.0 |    .  cm/s | doesn't work
 #
-# older values: (iirc no drall)
-#   16.0 |   -100.0 |    50.0 |  50.0 |  -8.0 |   0.0 |  10.0 |
-#   16.0 |   -100.0 |    50.0 |  50.0 |  -7.0 |   0.0 |  10.0 |
+# n??  |  16.0 |   -100.0 |    50.0 |  50.0 |  -8.0 |   0.0 |  10.0 |            | older values
+# n??  |  16.0 |   -100.0 |    50.0 |  50.0 |  -7.0 |   0.0 |  10.0 |            | older values
 #
-# real radius: 128 and 130 (drall)
-#   16.0 |   -129.0 |    50.0 |  20.0 |  -2.0 |   0.0 |   0.0 |   6.4 cm/s |
-#   16.0 |   -129.0 |    50.0 |  30.0 |  -2.0 |   0.0 |   0.0 |  12.0 cm/s |
-#   16.0 |   -129.0 |    50.0 |  40.0 |  -2.0 |   0.0 |   0.0 |  17.2 cm/s |
-#   16.0 |   -129.0 |    50.0 |  50.0 |  -2.0 |   0.0 |   0.0 |  22.2 cm/s |
-#   16.0 |   -129.0 |    50.0 |  60.0 |  -2.0 |   0.0 |   0.0 |  28.5 cm/s |
-#   16.0 |   -129.0 |    50.0 |  70.0 |  -2.0 |   0.0 |   0.0 |  33.3 cm/s |
-#   16.0 |   -129.0 |    50.0 |  80.0 |  -2.0 |   0.0 |   0.0 |  38.3 cm/s | not as optimal as 70
+# y    |  16.0 |   -129.0 |    50.0 |  20.0 |  -2.0 |   0.0 |   0.0 |   6.4 cm/s |
+# y    |  16.0 |   -129.0 |    50.0 |  30.0 |  -2.0 |   0.0 |   0.0 |  12.0 cm/s |
+# y    |  16.0 |   -129.0 |    50.0 |  40.0 |  -2.0 |   0.0 |   0.0 |  17.2 cm/s |
+# y    |  16.0 |   -129.0 |    50.0 |  50.0 |  -2.0 |   0.0 |   0.0 |  22.2 cm/s |
+# y    |  16.0 |   -129.0 |    50.0 |  60.0 |  -2.0 |   0.0 |   0.0 |  28.5 cm/s |
+# y    |  16.0 |   -129.0 |    50.0 |  70.0 |  -2.0 |   0.0 |   0.0 |  33.3 cm/s |
+# y    |  16.0 |   -129.0 |    50.0 |  80.0 |  -2.0 |   0.0 |   0.0 |  38.3 cm/s | not as optimal as 70
 #
-# older values: (iirc no drall)
-#   16.0 |   -129.0 |    50.0 |  50.0 |  -7.0 |   0.0 |  10.0 |
-#   16.0 |   -129.0 |    50.0 |  30.0 |  -7.0 |   0.0 |  10.0 |  13.1 cm/s | not optimal
+# n??  |  16.0 |   -129.0 |    50.0 |  50.0 |  -7.0 |   0.0 |  10.0 |            | older values
+# n??  |  16.0 |   -129.0 |    50.0 |  30.0 |  -7.0 |   0.0 |  10.0 |  13.1 cm/s | older values; not optimal
 #
-# 2023-11-23 no drall!
-#   16.0 |   -129.0 |    50.0 |  40.0 |  -6.0 | -0.07 |   0.0 |  17.2 cm/s | ok ish
-#   16.0 |   -129.0 |    50.0 |  50.0 |  -6.0 | -0.07 |   0.0 |  22.0 cm/s | wobbles around the line
-#   16.0 |   -129.0 |    50.0 |  50.0 |  -6.0 |  0.00 |   0.0 |  22.2 cm/s | doesn't wobble around
-#   16.0 |   -129.0 |    50.0 |  60.0 |  -6.0 |  0.00 |   0.0 |  27.5 cm/s | slowly moves to the lines, and fast away
-#   16.0 |   -129.0 |    50.0 |  60.0 |  -6.0 |  0.00 |  20.0 |  27.5 cm/s |
-#   16.0 |   -129.0 |    50.0 |  70.0 |  -6.0 |  0.00 |  20.0 |  32.4 cm/s | wobbles, but not very much
-#   16.0 |   -129.0 |    50.0 |  70.0 |  -4.0 |  0.00 |  30.0 |  30.6 cm/s |
-#   16.0 |   -129.0 |    50.0 |  80.0 |  -3.0 |  0.00 |  30.0 |  34.9 cm/s |
-#   16.0 |   -129.0 |    50.0 |  90.0 |  -3.0 |  0.00 |  30.0 |  38.4 cm/s |
-#   16.0 |   -129.0 |    50.0 | 100.0 |  -4.0 |  0.00 |  30.0 |  38.5 cm/s |
+# 2023-11-23
+# n    |  16.0 |   -129.0 |    50.0 |  40.0 |  -6.0 | -0.07 |   0.0 |  17.2 cm/s | ok ish
+# n    |  16.0 |   -129.0 |    50.0 |  50.0 |  -6.0 | -0.07 |   0.0 |  22.0 cm/s | wobbles around the line
+# n    |  16.0 |   -129.0 |    50.0 |  50.0 |  -6.0 |  0.00 |   0.0 |  22.2 cm/s | doesn't wobble around
+# n    |  16.0 |   -129.0 |    50.0 |  60.0 |  -6.0 |  0.00 |   0.0 |  27.5 cm/s | slowly moves to the lines, and fast away
+# n    |  16.0 |   -129.0 |    50.0 |  60.0 |  -6.0 |  0.00 |  20.0 |  27.5 cm/s |
+# n    |  16.0 |   -129.0 |    50.0 |  70.0 |  -6.0 |  0.00 |  20.0 |  32.4 cm/s | wobbles, but not very much
+# n    |  16.0 |   -129.0 |    50.0 |  70.0 |  -4.0 |  0.00 |  30.0 |  30.6 cm/s |
+# n    |  16.0 |   -129.0 |    50.0 |  80.0 |  -3.0 |  0.00 |  30.0 |  34.9 cm/s |
+# n    |  16.0 |   -129.0 |    50.0 |  90.0 |  -3.0 |  0.00 |  30.0 |  38.4 cm/s |
+# n    |  16.0 |   -129.0 |    50.0 | 100.0 |  -4.0 |  0.00 |  30.0 |  38.5 cm/s |
 # 2023-11-29
-#   16.0 |    -78.0 |    30.0 |  30.0 |  -4.0 | -0.11 |  40.0 |   9.2 cm/s |
-#   16.0 |    -78.0 |    60.0 |  30.0 |  -4.0 | -0.11 |  40.0 |  23.4 cm/s |
-#   16.0 |    -78.0 |    70.0 |  30.0 |  -4.0 | -0.11 |  40.0 |  28.1 cm/s |
-#   16.0 |    -78.0 |    80.0 |  30.0 |  -4.0 | -0.11 |  40.0 |  31.8 cm/s |
-#   16.0 |    -78.0 |    90.0 |  30.0 |  -4.0 | -0.11 |  40.0 |  35.8 cm/s |
-#    you can set the k_i to -0.07 to make it a bit smoother
+# n    |  16.0 |    -78.0 |    30.0 |  30.0 |  -4.0 | -0.11 |  40.0 |   9.2 cm/s |
+# n    |  16.0 |    -78.0 |    60.0 |  30.0 |  -4.0 | -0.11 |  40.0 |  23.4 cm/s |
+# n    |  16.0 |    -78.0 |    70.0 |  30.0 |  -4.0 | -0.11 |  40.0 |  28.1 cm/s |
+# n    |  16.0 |    -78.0 |    80.0 |  30.0 |  -4.0 | -0.11 |  40.0 |  31.8 cm/s |
+# n    |  16.0 |    -78.0 |    90.0 |  30.0 |  -4.0 | -0.11 |  40.0 |  35.8 cm/s |
+#  you can set the k_i to -0.07 to make it a bit smoother
 #
-# 2023-11-23 no drall!
-#   16.0 |   -100.0 |    50.0 |  30.0 |  -6.0 |  0.00 |  30.0 |  10.5 cm/s | on the bad circle leaves track a bit
-#   16.0 |   -100.0 |    60.0 |  40.0 |  -6.0 |  0.00 |  30.0 |  15.8 cm/s | driver very safe, tho leaving the track
-# 2023-11-29 no drall!
-#   16.0 |   -100.0 |    60.0 |  40.0 |  -4.0 | -0.07 |  40.0 |  16.5 cm/s |
-#   16.0 |   -100.0 |    60.0 |  50.0 |  -4.0 | -0.07 |  40.0 |  21.8 cm/s |
-#   16.0 |   -100.0 |    60.0 |  60.0 |  -4.0 | -0.07 |  40.0 |  27.5 cm/s |
-#   16.0 |   -100.0 |    60.0 |  70.0 |  -4.0 | -0.07 |  40.0 |  32.4 cm/s |
-#    you can't drive with v = 80 because of right motor turning too fast again!
+# 2023-11-23
+# n    |  16.0 |   -100.0 |    50.0 |  30.0 |  -6.0 |  0.00 |  30.0 |  10.5 cm/s | on the bad circle leaves track a bit
+# n    |  16.0 |   -100.0 |    60.0 |  40.0 |  -6.0 |  0.00 |  30.0 |  15.8 cm/s | driver very safe, tho leaving the track
+# 2023-11-29
+# n    |  16.0 |   -100.0 |    60.0 |  40.0 |  -4.0 | -0.07 |  40.0 |  16.5 cm/s |
+# n    |  16.0 |   -100.0 |    60.0 |  50.0 |  -4.0 | -0.07 |  40.0 |  21.8 cm/s |
+# n    |  16.0 |   -100.0 |    60.0 |  60.0 |  -4.0 | -0.07 |  40.0 |  27.5 cm/s |
+# n    |  16.0 |   -100.0 |    60.0 |  70.0 |  -4.0 | -0.07 |  40.0 |  32.4 cm/s |
+#  you can't drive with v = 80 because of right motor turning too fast again!
 #
-# 2023-11-23 no drall!
-#   16.0 |    -78.0 |    60.0 |  40.0 |  -6.0 | -0.07 |  30.0 |  15.8 cm/s | driver very safe, tho leaving the track
-# 2023-11-29 no drall!
-#   16.0 |    -78.0 |    60.0 |  30.0 |  -7.5 | -0.11 |  40.0 |    .  cm/s | driver very safe, but very slow
-#   16.0 |    -78.0 |    60.0 |  40.0 |  -4.0 | -0.07 |  30.0 |  15.8 cm/s | driver very safe
-#   16.0 |    -78.0 |    60.0 |  40.0 |  -7.5 | -0.11 |  40.0 |  14.8 cm/s | driver very safe
-#   16.0 |    -78.0 |    60.0 |  50.0 |  -6.0 | -0.07 |  30.0 |  19.6 cm/s | leaves the track a bit to the outside
-#   16.0 |    -78.0 |    60.0 |  50.0 |  -6.0 | -0.11 |  30.0 |  19.6 cm/s | takes less time for k_i to kick in
-#   16.0 |    -78.0 |    60.0 |  50.0 |  -7.5 | -0.11 |  40.0 |  19.6 cm/s | drives safe, but a bit shakey
-#   16.0 |    -78.0 |    60.0 |  60.0 |  -6.0 | -0.11 |  30.0 |  24.8 cm/s | leaves the track in triangle like fashon
-#   16.0 |    -78.0 |    60.0 |  60.0 |  -7.5 | -0.11 |  40.0 |  24.5 cm/s | shakes much
-#   16.0 |    -78.0 |    60.0 |  70.0 |  -6.0 | -0.11 |  40.0 |  29.5 cm/s | the k_d fixed some of the problems from k_p
-#   16.0 |    -78.0 |    60.0 |  70.0 |  -7.5 | -0.11 |  40.0 |  29.5 cm/s | drives better, but k_p = -8 doesn't!
-# We cannot go further than this, since the outer motor is running at over max speed (100) already,
-# so the symmetry of the robot gets destroyed -> regulation won't work properly -> doesn't drive  well!
+# 2023-11-23
+# n    |  16.0 |    -78.0 |    60.0 |  40.0 |  -6.0 | -0.07 |  30.0 |  15.8 cm/s | driver very safe, tho leaving the track
+# 2023-11-29
+# n    |  16.0 |    -78.0 |    60.0 |  30.0 |  -7.5 | -0.11 |  40.0 |    .  cm/s | driver very safe, but very slow
+# n    |  16.0 |    -78.0 |    60.0 |  40.0 |  -4.0 | -0.07 |  30.0 |  15.8 cm/s | driver very safe
+# n    |  16.0 |    -78.0 |    60.0 |  40.0 |  -7.5 | -0.11 |  40.0 |  14.8 cm/s | driver very safe
+# n    |  16.0 |    -78.0 |    60.0 |  50.0 |  -6.0 | -0.07 |  30.0 |  19.6 cm/s | leaves the track a bit to the outside
+# n    |  16.0 |    -78.0 |    60.0 |  50.0 |  -6.0 | -0.11 |  30.0 |  19.6 cm/s | takes less time for k_i to kick in
+# n    |  16.0 |    -78.0 |    60.0 |  50.0 |  -7.5 | -0.11 |  40.0 |  19.6 cm/s | drives safe, but a bit shakey
+# n    |  16.0 |    -78.0 |    60.0 |  60.0 |  -6.0 | -0.11 |  30.0 |  24.8 cm/s | leaves the track in triangle like fashon
+# n    |  16.0 |    -78.0 |    60.0 |  60.0 |  -7.5 | -0.11 |  40.0 |  24.5 cm/s | shakes much
+# n    |  16.0 |    -78.0 |    60.0 |  70.0 |  -6.0 | -0.11 |  40.0 |  29.5 cm/s | the k_d fixed some of the problems from k_p
+# n    |  16.0 |    -78.0 |    60.0 |  70.0 |  -7.5 | -0.11 |  40.0 |  29.5 cm/s | drives better, but k_p = -8 doesn't!
+#  We cannot go further than this with v, since the outer motor is running at over
+#  max speed (100) already, so the symmetry of the robot gets destroyed
+#  -> regulation won't work properly -> doesn't drive well!
 #
-# wwidth | diameter | lcenter | speed | l k_p | l k_i | l k_d | real speed | comment
+# spin | width | diameter | lcenter | speed | l k_p | l k_i | l k_d | real speed | comment
 
 # The robot speed.
 speed = 60.0
 
-# the distance where if below to try to regulate the distance
+# The distance to if below regulate the distance.
 distance_trigger = 50.0
 
-# the distance to stop when on the exit track
+# The distance to trigger a hard stop on the exit track.
 stop_distance = 20.0
 
-# the PID for regulating the driving
+# The PID for regulating the driving on the line.
 [line]
 center = 50.0
 k_p = -4.0
 k_i = -0.07
 k_d = 40.0
 
-# the PID for regulating the distance
+# The PID for regulating the distance to the other vehicle.
 [distance]
 center = 30.0
 k_p = 10.0
 k_i = 0.0
 k_d = 0.0
+
+# We drive in three states:
+# - First off we start the robot and drive until we have a distance lower than
+#   `distance.center`. We then switch to the next state.
+# - Here we follow the wall, and regulate the distance using the `distance` PID.
+#   If the distance we regulate is larger than `distance_trigger`, we switch to the
+#   next state.
+# - In this state we no longer regulate the distance with a PID, and instead drive
+#   until we have a distance lower than `stop_distance`. In that case, we reached
+#   the end of the track and immediately stop.
