@@ -7,7 +7,7 @@ log = true
 low_ref_warn = 17.0
 
 # If this is true, rotate the top arm.
-rotate_arm = false
+rotate_arm = true
 # This controls the speed of rotation in percent of the maximum speed of the small
 # motor. For starting up, the program sets the speed for 100ms (10 ticks) to 100%
 # of the value.
@@ -116,9 +116,9 @@ diameter = -78.0
 # spin | width | diameter | lcenter | speed | l k_p | l k_i | l k_d | real speed | comment
 
 # The robot speed.
-speed = 60.0
+speed = 50.0
 
-# The distance to if below regulate the distance.
+# The distance to trigger the exit state.
 distance_trigger = 50.0
 
 # The distance to trigger a hard stop on the exit track.
@@ -129,13 +129,13 @@ speed_correction_max = 0.2
 # The PID for regulating the driving on the line.
 [line]
 center = 50.0
-k_p = -4.0
+k_p = -6.0
 k_i = -0.07
-k_d = 40.0
+k_d = 60.0
 
 # The PID for regulating the distance to the other vehicle.
 [distance]
-center = 30.0
+center = 20.0
 k_p = 10.0
 k_i = 0.0
 k_d = 0.0
