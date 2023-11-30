@@ -23,6 +23,7 @@ pub(crate) struct Program {
 	distance: Pid,
 	distance_trigger: f64,
 	stop_distance: f64,
+	speed_correction_max: f64,
 
 	#[serde(skip)]
 	state: RobotState,
@@ -60,6 +61,7 @@ impl Default for Program {
 			},
 			distance_trigger: 40.0,
 			stop_distance: 20.0,
+			speed_correction_max: 0.1,
 
 			state: RobotState::default(),
 			top_arm_throttle: None,
@@ -173,6 +175,15 @@ impl Program {
 			0.0
 		};
 
+		// If our distance k_p is too large we can get a very large `speed_correction` value,
+		// and that makes the motors spin above our maximum speed again. Therefore we introduce
+		// a maximum speed correction value.
+		let clamped_speed_correction = if speed_correction > self.speed_correction_max {
+			self.speed_correction_max
+		} else {
+			speed_correction
+		};
+
 		// PROBLEM:
 		// We attempt to set the right motor speed to a value larger than the maximum speed of
 		// the motor, if `self.speed` is `100` (we use percents).
@@ -181,8 +192,8 @@ impl Program {
 		// and use twice the offset for the other one. This ensures that the maximum speed of
 		// the faster wheel is `self.speed` and nothing above it, as that's impossible when
 		// `self.speed` is the maximum speed possible for the wheel.
-		let l = self.speed * (1.0 + speed_correction) * (1.0 + line_correction + spin);
-		let r = self.speed * (1.0 + speed_correction) * (1.0 - line_correction - spin);
+		let l = self.speed * (1.0 + clamped_speed_correction) * (1.0 + line_correction + spin);
+		let r = self.speed * (1.0 + clamped_speed_correction) * (1.0 - line_correction - spin);
 
 		bot.left.set_speed(l)?;
 		bot.right.set_speed(r)?;
@@ -204,7 +215,7 @@ impl Program {
 			} else {
 				print!(" =>              -- ");
 			}
-			print!(" {speed_correction:>5.1} -- ref: {reflection:>5.1} -> l: {l:>5.1} r: {r:>5.1}");
+			print!(" {speed_correction:>5.3} -- ref: {reflection:>5.1} -> l: {l:>5.1} r: {r:>5.1}");
 			if reflection < self.low_ref_warn {
 				print!(" low ref!");
 			}
