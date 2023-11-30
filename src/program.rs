@@ -195,6 +195,16 @@ impl Program {
 		let l = self.speed * (1.0 + clamped_speed_correction) * (1.0 + line_correction + spin);
 		let r = self.speed * (1.0 + clamped_speed_correction) * (1.0 - line_correction - spin);
 
+		// PROBLEM:
+		// When we stand still and are in the follow mode (or any mode really), we collect a large amount
+		// of value in the integral part of the driving PID. When we then continue to move, we try to
+		// react to that large value and the robot leaves the track.
+		// FIX:
+		// We ensure that the robot doesn't stand still at any point of driving. A better fix would be
+		// to somehow multiply the velocity into the terms that are added into the integral. This would
+		// then ensure that for low velocities these terms are sufficiently small and the error collected
+		// stays reasonably stable.
+
 		bot.left.set_speed(l)?;
 		bot.right.set_speed(r)?;
 
