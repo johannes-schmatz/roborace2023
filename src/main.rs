@@ -22,8 +22,11 @@ fn main() -> Result<()> {
             .status()?;
     }
 
-    // TODO: consider running via ssh
-    // TODO: find a way to sync the robot_settings.toml
+    //TODO: consider running via ssh
+    // We run it over ssh on the robot. Not sure if they find that strange or not.
+    //TODO: find a way to sync the robot_settings.toml
+    // We just manually copy over the robot_settings.toml before starting and after
+    // being done.
 
     let bot = Robot::new().context("Failed to create robot")?;
 

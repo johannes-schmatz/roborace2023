@@ -74,4 +74,9 @@ impl Robot {
 			},
 		})
 	}
+
+	pub(crate) fn beep(&self) -> Result<()> {
+		ev3dev_lang_rust::sound::beep()?;
+		Ok(())
+	}
 }

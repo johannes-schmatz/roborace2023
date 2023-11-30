@@ -14,7 +14,7 @@ pub(crate) struct Program {
 	diameter: f64,
 
 	rotate_arm: bool,
-	rotate_arm_speed: f64, // 0..=100
+	rotate_arm_speed: f64,
 
 	line: Pid,
 	low_ref_warn: f64,
@@ -27,7 +27,7 @@ pub(crate) struct Program {
 	#[serde(skip)]
 	state: RobotState,
 	#[serde(skip)]
-	top_motor_reduce_speed: Option<usize>,
+	top_arm_throttle: Option<usize>,
 }
 
 impl Default for Program {
@@ -62,18 +62,17 @@ impl Default for Program {
 			stop_distance: 20.0,
 
 			state: RobotState::default(),
-			top_motor_reduce_speed: None,
+			top_arm_throttle: None,
 		}
 	}
 }
 
 impl Program {
 	fn test(&self, bot: &Robot) -> Result<()> {
-		dbg!(&bot.left);
-		dbg!(&bot.right);
+		dbg!(&bot);
 
 		bot.top_arm.start_with_full_power()?;
-		std::thread::sleep(Duration::from_millis(100));
+		std::thread::sleep(Self::TICK_TIME * Self::SMALL_MOTOR_WARM_UP as u32);
 		bot.top_arm.set_speed(self.rotate_arm_speed)?;
 
 		std::thread::sleep(Duration::from_secs(4));
@@ -100,6 +99,7 @@ impl Program {
 	}
 
 	fn prepare_drive(&mut self, bot: &Robot) -> Result<()> {
+		// We set the last error of the line PID in order to remove a bump in the very first tick.
 		self.line.last_error = bot.color.get_color()? - self.line.center;
 		self.distance.last_error = 0.0;
 
@@ -112,6 +112,9 @@ impl Program {
 		Ok(())
 	}
 
+	// We need 100ms, i.e. 10 ticks, to start up the small motor.
+	const SMALL_MOTOR_WARM_UP: usize = 10;
+
 	fn drive(&mut self, bot: &Robot, tick_counter: usize) -> Result<()> {
 		let distance = bot.distance.get_distance()?;
 
@@ -119,34 +122,36 @@ impl Program {
 			match self.state {
 				RobotState::DriveExit if distance < self.stop_distance => {
 					self.state = RobotState::Exit;
-					ev3dev_lang_rust::sound::beep()?;
-					println!("stopping because dst was: {distance:?}, which is less than {:?}", self.stop_distance);
+					bot.beep()?;
+					println!("stopping because dst was: {distance:?}, which is less than {:?}",
+						self.stop_distance
+					);
 				},
 				RobotState::DriveFollow if distance > self.distance_trigger => {
 					self.state = RobotState::DriveExit;
-					ev3dev_lang_rust::sound::beep()?;
+					bot.beep()?;
 					bot.top_arm.stop()?;
 				},
 				RobotState::DriveEntry if distance < self.distance.center => {
 					self.state = RobotState::DriveFollow;
-					ev3dev_lang_rust::sound::beep()?;
-
+					bot.beep()?;
 					if self.rotate_arm {
 						bot.top_arm.start_with_full_power()?;
-						// in 100ms turn it off
-						self.top_motor_reduce_speed = Some(tick_counter + 10); // 10 = 100ms
+						self.top_arm_throttle = Some(tick_counter + Self::SMALL_MOTOR_WARM_UP);
 					}
 				},
 				_ => {},
 			}
 		}
-		// use this to offset the top motor speed setting
-		if self.top_motor_reduce_speed.is_some_and(|x| x < tick_counter) {
-			self.top_motor_reduce_speed = None;
+
+		// When we have the throttle of the small motor scheduled, throttle it.
+		if self.top_arm_throttle.is_some_and(|x| x < tick_counter) {
+			self.top_arm_throttle = None;
 			bot.top_arm.set_speed(self.rotate_arm_speed)?;
 		}
 
-		// -0.5 ..= 0.5, default 0
+		// Only with a sufficiently low distance and the correct driving state,
+		// we regulate the distance.
 		let speed_correction = distance
 			.filter(|&x| x < self.distance_trigger && self.state == RobotState::DriveFollow)
 			.map_or(0.0, |x| {
@@ -156,10 +161,11 @@ impl Program {
 		let reflection = bot.color.get_color()?;
 		let line_correction = self.line.update(reflection) / 1000.0;
 
-		let line_after_correction = if self.state == RobotState::DriveFollow {
+		// The other team calls this (in german) "Drall".
+		let spin = if self.state == RobotState::DriveFollow {
 			// In the actual competition we set `self.robot_wheel_width` to `0.0`,
-			// as that makes the `line_after_correction` (other people call it "Drall"),
-			// which removes constant left or right turn.
+			// as that makes the spin zero as well, which removes constant left or right
+			// turn.
 			// This was originally created for the qualification, to ease driving one circle
 			// without any in or out.
 			self.robot_wheel_width / self.diameter
@@ -175,8 +181,8 @@ impl Program {
 		// and use twice the offset for the other one. This ensures that the maximum speed of
 		// the faster wheel is `self.speed` and nothing above it, as that's impossible when
 		// `self.speed` is the maximum speed possible for the wheel.
-		let l = self.speed * (1.0 + speed_correction) * (1.0 + line_correction + line_after_correction);
-		let r = self.speed * (1.0 + speed_correction) * (1.0 - line_correction - line_after_correction);
+		let l = self.speed * (1.0 + speed_correction) * (1.0 + line_correction + spin);
+		let r = self.speed * (1.0 + speed_correction) * (1.0 - line_correction - spin);
 
 		bot.left.set_speed(l)?;
 		bot.right.set_speed(r)?;
@@ -194,9 +200,9 @@ impl Program {
 				None => print!("no dst"),
 			};
 			if distance.is_some_and(|x| x < self.distance_trigger) {
-				print!(" => trigger  -- ");
+				print!(" => dst trigger  -- ");
 			} else {
-				print!(" =>          -- ");
+				print!(" =>              -- ");
 			}
 			print!(" {speed_correction:>5.1} -- ref: {reflection:>5.1} -> l: {l:>5.1} r: {r:>5.1}");
 			if reflection < self.low_ref_warn {
@@ -271,6 +277,8 @@ impl Program {
 		Ok(())
 	}
 
+	// we do 100 ticks per second
+	const TICK_TIME: Duration = Duration::from_millis(10);
 
 	pub(crate) fn main(&mut self, bot: &Robot) -> Result<()> {
 		let initial_state = if let Some(arg) = std::env::args().skip(1).next() {
@@ -317,9 +325,9 @@ impl Program {
 
 		self.next_state(bot, initial_state)?;
 
-		// we do 100 ticks per second
-		let tick_time = Duration::from_millis(10);
-		let mut counter = 0usize; // 31 bit are sufficient for 99h of incrementing this, this should not fail
+		// 31bit are sufficient for 99h of incrementing this ever 10ms,
+		// so this should not fail in the time frame we need.
+		let mut counter = 0usize;
 		loop {
 			let start = Instant::now();
 
@@ -334,7 +342,7 @@ impl Program {
 			}
 			counter += 1;
 
-			if let Some(dur) = tick_time.checked_sub(end) {
+			if let Some(dur) = Self::TICK_TIME.checked_sub(end) {
 				std::thread::sleep(dur)
 			}
 		}
