@@ -85,7 +85,6 @@ impl Program {
 
 	fn measure(&self, bot: &Robot) -> Result<()> {
 		loop {
-			bot.buttons.update();
 			if bot.buttons.is_right() {
 				break;
 			}
@@ -210,7 +209,6 @@ impl Program {
 	}
 
 	fn tick(&mut self, bot: &Robot, tick_counter: usize) -> Result<bool> {
-		bot.buttons.update();
 		if bot.buttons.is_left() {
 			std::thread::sleep(Duration::from_millis(300));
 			self.next_state(bot, RobotState::InMenu)?;

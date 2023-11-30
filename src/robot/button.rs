@@ -41,27 +41,28 @@ impl Buttons {
 		}
 	}
 
-	pub(crate) fn update(&self) {
-		self.inner.process();
-	}
-
 	pub(crate) fn is_up(&self) -> bool {
+		self.inner.process();
 		self.inner.is_up()
 	}
 
 	pub(crate) fn is_down(&self) -> bool {
+		self.inner.process();
 		self.inner.is_down()
 	}
 
 	pub(crate) fn is_left(&self) -> bool {
+		self.inner.process();
 		self.inner.is_left()
 	}
 
 	pub(crate) fn is_right(&self) -> bool {
+		self.inner.process();
 		self.inner.is_right()
 	}
 
 	pub(crate) fn is_enter(&self) -> bool {
+		self.inner.process();
 		self.inner.is_enter()
 	}
 }
