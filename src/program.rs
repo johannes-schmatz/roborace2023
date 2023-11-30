@@ -111,6 +111,8 @@ impl Program {
 		bot.right.start()?;
 		bot.right.set_speed(self.speed)?;
 
+		bot.beep()?;
+
 		Ok(())
 	}
 
@@ -240,6 +242,9 @@ impl Program {
 			std::thread::sleep(Duration::from_millis(300));
 			self.next_state(bot, RobotState::InMenu)?;
 		}
+		if bot.touch.is_pressed()? {
+			self.next_state(bot, RobotState::InMenu)?;
+		}
 
 		match self.state {
 			RobotState::Exit => {
@@ -254,7 +259,7 @@ impl Program {
 				self.test(bot)?;
 				self.state = RobotState::Exit;
 			},
-
+			RobotState::Start => {},
 			RobotState::Measure => {
 				self.measure(bot)?;
 				self.state = RobotState::InMenu;
@@ -284,6 +289,18 @@ impl Program {
 		}
 
 		match &new_state {
+			RobotState::Start => {
+				while !bot.touch.is_pressed()? {
+					std::thread::sleep(Duration::from_millis(100));
+				}
+				while bot.touch.is_pressed()? {
+					std::thread::sleep(Duration::from_millis(100));
+				}
+				self.state = RobotState::DriveEntry;
+				self.prepare_drive(bot)
+					.context("Failed to prepare for line drive")?;
+				return Ok(());
+			},
 			RobotState::DriveSimpleOnly |
 			RobotState::DriveEntry |
 			RobotState::DriveFollow |
@@ -315,6 +332,7 @@ impl Program {
 				"measure" => RobotState::Measure,
 				"drive" => RobotState::DriveEntry,
 				"driveS" => RobotState::DriveSimpleOnly,
+				"start" => RobotState::Start,
 				"l" => {
 					let amount = std::env::args().skip(2)
 						.next().map(|x| x.parse::<f64>()).context("You're missing an argument")?

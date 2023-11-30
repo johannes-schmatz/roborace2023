@@ -8,6 +8,8 @@ pub(crate) enum RobotState {
 
 	DriveSimpleOnly, // for testing our PID values without constant sideways drag
 
+	Start,
+
 	DriveEntry,
 	DriveFollow,
 	DriveExit,
@@ -33,6 +35,7 @@ impl RobotState {
 	pub(crate) const ALL: &'static [(&'static str, RobotState)] = &[
 		("exit", RobotState::Exit),
 		("menu", RobotState::InMenu),
+		("start", RobotState::Start),
 		("test", RobotState::Test),
 		("measure", RobotState::Measure),
 		("drive entry", RobotState::DriveEntry),
