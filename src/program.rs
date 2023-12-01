@@ -19,6 +19,7 @@ pub(crate) struct Program {
 	line: Pid,
 	low_ref_warn: f64,
 	speed: f64,
+	speed_pid_turn_off: f64,
 
 	distance: Pid,
 	distance_trigger: f64,
@@ -51,6 +52,7 @@ impl Default for Program {
 			},
 			low_ref_warn: 17.0,
 			speed: 50.0,
+			speed_pid_turn_off: 10.0,
 
 			distance: Pid {
 				center: 20.0,
@@ -162,8 +164,26 @@ impl Program {
 				self.distance.update(x) / 100.0
 			});
 
+		// If our distance k_p is too large we can get a very large `speed_correction` value,
+		// and that makes the motors spin above our maximum speed again. Therefore we introduce
+		// a maximum speed correction value.
+		let clamped_speed_correction = if speed_correction > self.speed_correction_max {
+			self.speed_correction_max
+		} else {
+			speed_correction
+		};
+
 		let reflection = bot.color.get_color()?;
-		let line_correction = self.line.update(reflection) / 1000.0;
+		let line_correction = {
+			let error = reflection - self.line.center;
+			let last_error = std::mem::replace(&mut self.line.last_error, error);
+			if self.speed * (1.0 + clamped_speed_correction) > self.speed_pid_turn_off {
+				self.line.integral += error;
+			}
+			(self.line.k_p * error
+				+ self.line.k_i * self.line.integral
+				+ self.line.k_d * (last_error - error)) / 1000.0
+		};
 
 		// The other team calls this (in german) "Drall".
 		let spin = if self.state == RobotState::DriveFollow {
@@ -175,15 +195,6 @@ impl Program {
 			self.robot_wheel_width / self.diameter
 		} else {
 			0.0
-		};
-
-		// If our distance k_p is too large we can get a very large `speed_correction` value,
-		// and that makes the motors spin above our maximum speed again. Therefore we introduce
-		// a maximum speed correction value.
-		let clamped_speed_correction = if speed_correction > self.speed_correction_max {
-			self.speed_correction_max
-		} else {
-			speed_correction
 		};
 
 		// PROBLEM:

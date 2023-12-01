@@ -1,7 +1,7 @@
 # This file belongs on the robot.
 
 # To log or to not log to stdout.
-log = true
+log = false
 
 # The first value to warn about a low reflection at in the log.
 low_ref_warn = 17.0
@@ -125,6 +125,7 @@ distance_trigger = 50.0
 stop_distance = 20.0
 
 speed_correction_max = 0.2
+speed_pid_turn_off = 20.0
 
 # The PID for regulating the driving on the line.
 [line]
