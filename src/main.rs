@@ -13,7 +13,7 @@ use crate::robot::Robot;
 //
 //TODO: For actual running do the following:
 // - Measure the black and white values.
-//   Values of about 8 for black and about 94 for white are good.
+//   Values of about 8 for black and about 94 for white are good. (done!)
 // - Find the matching circle: 78cm, 100cm or 129cm:
 //   - Small one:
 //     We hope that they didn't chose this circle.
@@ -22,7 +22,7 @@ use crate::robot::Robot;
 //   - Medium one:
 //     A normal k_p and a normal k_i are sufficient.
 //     We cannot drive with v = 80 because of the problems
-//     with the speed of the right motor.
+//     with the speed of the right motor. (this one!)
 //   - Large one:
 //     This is the easiest to drive on.
 //     We use our normal values everywhere.
