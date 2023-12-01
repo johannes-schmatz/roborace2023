@@ -116,7 +116,7 @@ diameter = -78.0
 # spin | width | diameter | lcenter | speed | l k_p | l k_i | l k_d | real speed | comment
 
 # The robot speed.
-speed = 60.0
+speed = 63.0
 
 # The distance to trigger the exit state.
 distance_trigger = 50.0
