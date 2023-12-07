@@ -218,6 +218,14 @@ impl Program {
 		// then ensure that for low velocities these terms are sufficiently small and the error collected
 		// stays reasonably stable.
 
+		let (l, r) = if r > 100.0 && l < 100.0 {
+			(l * 100.0 / r, 100.0)
+		} else if l > 100.0 && r < 100.0 {
+			(100.0, r * 100.0 / l)
+		} else {
+			(l, r)
+		};
+
 		bot.left.set_speed(l)?;
 		bot.right.set_speed(r)?;
 
