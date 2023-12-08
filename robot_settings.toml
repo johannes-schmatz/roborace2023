@@ -1,7 +1,8 @@
 # This file belongs on the robot.
 
 # To log or to not log to stdout.
-log = true
+#log = true
+log = false
 
 # The first value to warn about a low reflection at in the log.
 low_ref_warn = 17.0
@@ -118,7 +119,7 @@ diameter = -78.0
 # The robot speed.
 #speed = 63.0
 # v_max = 69.0 because with 73.0 we get quite some values for the right motor with 104 or 105...
-speed = 69.3
+speed = 61.3
 
 # The distance to trigger the exit state.
 distance_trigger = 60.0
@@ -127,16 +128,16 @@ distance_trigger = 60.0
 # The distance to trigger a hard stop on the exit track.
 stop_distance = 25.0
 
-speed_correction_max = 0.2
+speed_correction_max = 0.4
 speed_pid_turn_off = 20.0
 
 # The PID for regulating the driving on the line.
 [line]
 center = 50.0
-k_p = -6.0
+k_p = -5.0
 #k_i = 0.0
-k_i = -0.07
-k_d = 60.0
+k_i = -0.11
+k_d = 50.0
 
 # The PID for regulating the distance to the other vehicle.
 [distance]
